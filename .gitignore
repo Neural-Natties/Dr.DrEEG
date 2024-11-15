@@ -173,11 +173,6 @@ next-env.d.ts
 .pnpm-store/
 .pnpm-debug.log*
 
-# EEG Data files
-*.csv
-*.edf
-*.bdf
-
 # ML Models
 *.pkl
 *.h5
