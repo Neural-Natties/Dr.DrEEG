@@ -160,3 +160,29 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# Frontend specific
+node_modules/
+.next/
+out/
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+
+# PNPM
+.pnpm-store/
+.pnpm-debug.log*
+
+# EEG Data files
+*.csv
+*.edf
+*.bdf
+
+# ML Models
+*.pkl
+*.h5
+*.model
+
+# OS specific
+.DS_Store
+Thumbs.db
