@@ -3,11 +3,11 @@ uvicorn==0.23.2
 websockets==11.0.3
 numpy==1.25.2
 pandas==2.1.0
-scikit-learn==1.3.0
+scikit-learn==1.5.0
 spotipy==2.23.0
 pylsl==1.16.1
 muselsl==2.2.2
 python-dotenv==1.0.0
-pydantic==2.3.0
+pydantic==2.4.0
 matplotlib==3.7.2
 scipy==1.11.2
