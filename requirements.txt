@@ -1,0 +1,6 @@
+muselsl
+numpy
+matplotlib
+scipy
+scikit-learn
+pylsl
