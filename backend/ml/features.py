@@ -16,3 +16,5 @@ def extract_eeg_features(eeg_data: np.ndarray, fs: int = 256):
         features.extend([delta, theta, alpha, beta])
 
     return np.array(features)
+
+

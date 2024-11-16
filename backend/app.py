@@ -4,9 +4,13 @@ import uvicorn
 import asyncio
 from muse.processor import MuseProcessor
 from ml.features import extract_eeg_features
+import numpy as np
+from scipy.signal import welch
+from ml.model import load_model, classify_emotion
+from ml.EEG_feature_extraction import generate_feature_vectors_from_samples, matrix_from_csv_file, calc_feature_vector,  get_time_slice, generate_features_for_timeslice, feature_mean
 
 app = FastAPI()
-muse_processor = MuseProcessor()
+# muse_processor = MuseProcessor()
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,19 +34,27 @@ def test_endpoint():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    model = load_model()
     try:
         while True:
             # Get EEG features
-            eeg_features = await muse_processor.get_eeg_features()
-
-            if eeg_features is not None:
-                # For now, let's send the raw features
-                await websocket.send_json(
-                    {
-                        "eeg_data": eeg_features.tolist(),
-                        "timestamp": asyncio.get_event_loop().time(),
-                    }
-                )
+            classifications = []
+            # eeg_features = await muse_processor.get_eeg_features()
+            eeg_features = generate_feature_vectors_from_samples("../test-muse/recording/test-data.csv", 10, 1.0, 1.0, True)
+            for i in range(len(eeg_features)):
+                # eeg_features[i] = extract_eeg_features(eeg_features[i])
+                classifications.append(classify_emotion(model, eeg_features))
+            
+            for classification in classifications:
+                if classification is not None:
+                    # For now, let's send the raw features
+                    await websocket.send_json(
+                        {
+                            "eeg_data": classification.tolist(),
+                            "timestamp": asyncio.get_event_loop().time(),
+                        }
+                    )
+                    await asyncio.sleep(1)  # Adjust rate as needed
 
             await asyncio.sleep(0.1)  # Adjust rate as needed
 
@@ -54,13 +66,54 @@ async def websocket_endpoint(websocket: WebSocket):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
+        model = load_model()
+        # print("Model loaded")
         while True:
-            await websocket.send_json(
-                {
-                    "emotion": {"type": "happy", "confidence": 0.85},
-                    "song": {"name": "Test Song", "artist": "Test Artist"},
-                }
-            )
+            classifications = []
+            eeg_features = await muse_processor.get_eeg_features()
+            eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
+
+            detected_emotion = classify_emotion(model,eeg_feature_vectors, 0)
+
+
+            # time = eeg_features[-1][0]
+            # print("Time", time)
+            # # break
+            # for i in range( int(time-eeg_features[0][0])):
+            #     # eeg_features[i] = extract_eeg_features(eeg_features[i])
+            #     print(f"Getting time slice {i}")
+                
+            #     time_slice, _ = get_time_slice(eeg_features, i)
+            #     print("Time slice shape", time_slice.shape, "\n",time_slice)  
+            #     if 0 in time_slice.shape: 
+            #         continue
+            #     features, _ = generate_features_for_timeslice(time_slice)
+
+            #     time_slice = features
+            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
+            #     time_slice, _ = feature_mean(time_slice)
+            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
+            #     classifications.append(classify_emotion(model, time_slice, i))
+            
+            # for i, classification in enumerate(classifications):
+            if detected_emotion is not None:
+                # For now, let's send the raw features
+                print(f"Sending classification {i}")
+                await websocket.send_json(
+                    {
+                        "eeg_data": eeg_features.tolist(),
+                        "emotion": detected_emotion['emotion'],
+                        "valence": detected_emotion['valence'],
+                        "timestamp": asyncio.get_event_loop().time(),
+                    }
+                )
+                await asyncio.sleep(1)  # Adjust rate as needed
+            # await websocket.send_json(
+            #     {
+            #         "emotion": {"type": "happy", "confidence": 0.85},
+            #         "song": {"name": "Test Song", "artist": "Test Artist"},
+            #     }
+            # )
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         print("Client disconnected")
