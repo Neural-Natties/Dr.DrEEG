@@ -1,6 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from ..config.settings import settings
+from config.settings import settings
 
 
 def get_spotify_client():
