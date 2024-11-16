@@ -14,6 +14,7 @@ cycler==0.12.1
 enum-compat==0.0.3
 exceptiongroup==1.2.2
 fastapi==0.103.1
+<<<<<<< HEAD
 flatbuffers==24.3.25
 fonttools==4.55.0
 gast==0.6.0
@@ -80,3 +81,19 @@ uvicorn==0.23.2
 websockets==11.0.3
 Werkzeug==3.1.3
 wrapt==1.16.0
+=======
+lyricsgenius
+matplotlib==3.7.2
+muselsl==2.2.2
+numpy==1.25.2
+pandas==2.1.0
+pydantic
+pydantic-settings==2.6.1
+pylsl==1.16.1
+python-dotenv==1.0.0
+scikit-learn==1.5.0
+scipy==1.11.2
+spotipy==2.23.0
+uvicorn==0.23.2
+websockets==11.0.3
+>>>>>>> 3ec5241e63a68866f84eb197fa3bc4f685571af2

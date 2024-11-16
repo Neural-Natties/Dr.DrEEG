@@ -4,10 +4,27 @@
     <h1>WebSocket Test</h1>
     <div id="messages"></div>
     <script>
-      const ws = new WebSocket('ws://localhost:8000/wstest');
+      const ws = new WebSocket('ws://localhost:8000/ws');
       ws.onmessage = (event) => {
         const messages = document.getElementById('messages');
-        messages.innerHTML += `<p>${event.data}</p>`;
+        const data = JSON.parse(event.data);
+        messages.innerHTML += `
+          <p>
+            ID: ${data.song.id}<br>
+            Name: ${data.song.name}<br>
+            Artist: ${data.song.artist}<br>
+            URL: <a href="${
+              data.song.url
+            }" target="_blank">Listen on Spotify</a><br>
+            ${
+              data.song.albumArt
+                ? `<img src="${data.song.albumArt}" width="100"><br>`
+                : ''
+            }
+            Emotion: ${data.emotion}<br>
+            Lyrics: ${data.song.lyrics}
+          </p>
+        `;
       };
     </script>
   </body>
