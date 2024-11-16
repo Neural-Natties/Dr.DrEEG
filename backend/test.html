@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>WebSocket Test</h1>
+    <div id="messages"></div>
+    <script>
+      const ws = new WebSocket('ws://localhost:8000/wstest');
+      ws.onmessage = (event) => {
+        const messages = document.getElementById('messages');
+        messages.innerHTML += `<p>${event.data}</p>`;
+      };
+    </script>
+  </body>
+</html>
