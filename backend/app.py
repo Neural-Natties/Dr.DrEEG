@@ -2,24 +2,11 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import asyncio
-import threading
 from muse.processor import MuseProcessor
 from ml.features import extract_eeg_features
 
 app = FastAPI()
-muse_processor = None
-
-
-async def init_muse():
-    global muse_processor
-    muse_processor = MuseProcessor()
-    await muse_processor.start_stream()
-
-
-@app.on_event("startup")
-async def startup_event():
-    await init_muse()
-
+muse_processor = MuseProcessor()
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,16 +32,20 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            if muse_processor:
-                eeg_features = await muse_processor.get_eeg_features()
-                if eeg_features is not None:
-                    await websocket.send_json(
-                        {
-                            "eeg_data": eeg_features.tolist(),
-                            "timestamp": asyncio.get_event_loop().time(),
-                        }
-                    )
-            await asyncio.sleep(0.1)
+            # Get EEG features
+            eeg_features = await muse_processor.get_eeg_features()
+
+            if eeg_features is not None:
+                # For now, let's send the raw features
+                await websocket.send_json(
+                    {
+                        "eeg_data": eeg_features.tolist(),
+                        "timestamp": asyncio.get_event_loop().time(),
+                    }
+                )
+
+            await asyncio.sleep(0.1)  # Adjust rate as needed
+
     except WebSocketDisconnect:
         print("Client disconnected")
 
