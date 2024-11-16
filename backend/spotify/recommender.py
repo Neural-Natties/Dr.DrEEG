@@ -61,7 +61,7 @@ class MusicRecommender:
         }
 
     def get_recommendations(self, emotion: str, limit: int = 5) -> List[Dict]:
-        params = self.emotion_seeds.get(emotion, self.emotion_seeds["calm"])
+        params = self.emotion_seeds.get(emotion, self.emotion_seeds["relaxed"])
 
         recommendations = self.sp.recommendations(
             seed_genres=params["genres"][:2],

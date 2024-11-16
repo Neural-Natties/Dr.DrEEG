@@ -8,6 +8,7 @@ from spotify.recommender import MusicRecommender
 import numpy as np
 from scipy.signal import welch
 from ml.model import load_model, classify_emotion
+from random import shuffle
 from ml.EEG_feature_extraction import generate_feature_vectors_from_samples, matrix_from_csv_file, calc_feature_vector,  get_time_slice, generate_features_for_timeslice, feature_mean
 
 app = FastAPI()
@@ -62,13 +63,14 @@ async def websocket_endpoint(websocket: WebSocket):
         model = load_model()
         # print("Model loaded")
         while True:
-            eeg_features = await muse_processor.get_eeg_features()
-            eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
+            # eeg_features = await muse_processor.get_eeg_features()
+            eeg_features = []
+            # eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
 
-            detected_emotion = classify_emotion(model,eeg_feature_vectors, 0)
+            detected_emotion = classify_emotion(model,eeg_features, 0)
             emotion = detected_emotion['emotion']
             songs = recommender.get_recommendations(emotion, limit=2)
-            songs.shuffle()
+            shuffle(songs)
                 
 
 
@@ -94,7 +96,6 @@ async def websocket_endpoint(websocket: WebSocket):
             # for i, classification in enumerate(classifications):
             if detected_emotion is not None:
                 # For now, let's send the raw features
-                print(f"Sending classification {i}")
                 await websocket.send_json(
                     {
                         # "eeg_data": eeg_features.tolist(),
@@ -117,10 +118,11 @@ async def websocket_endpoint(websocket: WebSocket):
         model = load_model()
         # print("Model loaded")
         while True:
-            eeg_features = await muse_processor.get_eeg_features()
-            eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
+            # eeg_features = await muse_processor.get_eeg_features()
+            eeg_features = []
+            # eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
 
-            detected_emotion = classify_emotion(model,eeg_feature_vectors, 0)
+            detected_emotion = classify_emotion(model,eeg_features, 0)
 
 
             # time = eeg_features[-1][0]
@@ -145,7 +147,6 @@ async def websocket_endpoint(websocket: WebSocket):
             # for i, classification in enumerate(classifications):
             if detected_emotion is not None:
                 # For now, let's send the raw features
-                print(f"Sending classification {i}")
                 await websocket.send_json(
                     {
                         "eeg_data": eeg_features.tolist(),

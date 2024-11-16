@@ -48,7 +48,8 @@ def classify_emotion(model, input_data, state):
     global emotion
     # Ensure the input data is in the correct shape for the model
     # input_data = input_data[:, :-1]
-    multiplier = random.randfloat(0, 0.2)
+    multiplier = random.randint(0, 2)
+    multiplier /= 10
     multiplier -= 0.1
     multiplier += 1
     emotion *= multiplier
