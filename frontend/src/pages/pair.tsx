@@ -1,12 +1,9 @@
 import React from 'react';
 import { useRouter } from "next/router";
-import { useWebSocket } from '@/hooks/useWebSocket';
-
 
 const PairingPage = () => {
 
   const router = useRouter();
-  const { data, isConnected } = useWebSocket("ws://localhost:8000/wstest");
 
   return (
     <div className="relative z-[1] h-screen overflow-auto py-4">

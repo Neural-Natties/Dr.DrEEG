@@ -41,6 +41,14 @@ async def callback(code: str):
     token_info = get_spotify_client().get_access_token(code)
     return {"access_token": token_info["access_token"]}
 
+@app.get("/auth/token")
+async def get_token():
+    token = get_spotify_client().auth_manager.get_access_token()
+    if token:
+       return {"access_token": token["access_token"]}
+    else:
+        return {"error": "Token not found"}
+  
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
