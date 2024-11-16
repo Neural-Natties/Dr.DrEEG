@@ -1,6 +1,17 @@
+export interface WebSocketMessage {
+  type: string;
+  payload: any;
+  song: Song;
+}
 
-// Add your types here
-export interface WebSocketMessage {  
-    type: string;
-    payload: any;
+export interface Song {
+  id: string;
+  name: string;
+  artist: string;
+  url: string;
+  albumArt: string | null;
+  album: string;
+  duration: number;
+  emotion: string;
+  lyrics: string[];
 }

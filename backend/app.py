@@ -1,12 +1,15 @@
+import asyncio
+import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-import asyncio
 from muse.processor import MuseProcessor
-from ml.features import extract_eeg_features
+from spotify.auth import get_spotify_client
+from spotify.recommender import MusicRecommender
 
 app = FastAPI()
-# muse_processor = MuseProcessor()
+muse_processor = MuseProcessor()
+recommender = MusicRecommender()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,6 +51,20 @@ def test_endpoint():
 
 #     except WebSocketDisconnect:
 #         print("Client disconnected")
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        # Get recommendations for different emotions
+        emotions = ["happy", "calm", "focused", "excited"]
+        for emotion in emotions:
+            songs = recommender.get_recommendations(emotion, limit=2)
+            for song in songs:
+                await websocket.send_json({"emotion": emotion, "song": song})
+                await asyncio.sleep(10)  # Wait 10 seconds between songs
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 
 @app.websocket("/wstest")

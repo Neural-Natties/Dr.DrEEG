@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import React from 'react';
 
 const KaraokePage: React.FC = () => {
-  const { data, isConnected } = useWebSocket("ws://localhost:8000/wstest");
+  const { data, isConnected } = useWebSocket('ws://localhost:8000/ws');
 
   return (
     <div className='p-6 text-2xl w-screen h-screen'>
