@@ -118,50 +118,14 @@ async def websocket_endpoint(websocket: WebSocket):
         model = load_model()
         # print("Model loaded")
         while True:
-            # eeg_features = await muse_processor.get_eeg_features()
-            eeg_features = []
-            # eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
-
-            detected_emotion = classify_emotion(model,eeg_features, 0)
-
-
-            # time = eeg_features[-1][0]
-            # print("Time", time)
-            # # break
-            # for i in range( int(time-eeg_features[0][0])):
-            #     # eeg_features[i] = extract_eeg_features(eeg_features[i])
-            #     print(f"Getting time slice {i}")
-                
-            #     time_slice, _ = get_time_slice(eeg_features, i)
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)  
-            #     if 0 in time_slice.shape: 
-            #         continue
-            #     features, _ = generate_features_for_timeslice(time_slice)
-
-            #     time_slice = features
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
-            #     time_slice, _ = feature_mean(time_slice)
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
-            #     classifications.append(classify_emotion(model, time_slice, i))
-            
-            # for i, classification in enumerate(classifications):
-            if detected_emotion is not None:
-                # For now, let's send the raw features
-                await websocket.send_json(
-                    {
-                        "eeg_data": eeg_features.tolist(),
-                        "emotion": detected_emotion['emotion'],
-                        "valence": detected_emotion['valence'],
-                        "timestamp": asyncio.get_event_loop().time(),
-                    }
-                )
-                await asyncio.sleep(1)  # Adjust rate as needed
-            # await websocket.send_json(
-            #     {
-            #         "emotion": {"type": "happy", "confidence": 0.85},
-            #         "song": {"name": "Test Song", "artist": "Test Artist"},
-            #     }
-            # )
+            await websocket.send_json(
+                {
+                    "emotion": {"type": "happy", "confidence": 0.85},
+                    "valence": "0.33",
+                    "song": {"name": "Test Song", "artist": "Test Artist"},
+                    "timestamp": "124345.345678",
+                }
+            )
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         print("Client disconnected")
