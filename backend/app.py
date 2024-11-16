@@ -66,6 +66,10 @@ async def websocket_endpoint(websocket: WebSocket):
             eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
 
             detected_emotion = classify_emotion(model,eeg_feature_vectors, 0)
+            emotion = detected_emotion['emotion']
+            songs = recommender.get_recommendations(emotion, limit=2)
+            songs.shuffle()
+                
 
 
             # time = eeg_features[-1][0]
@@ -93,19 +97,14 @@ async def websocket_endpoint(websocket: WebSocket):
                 print(f"Sending classification {i}")
                 await websocket.send_json(
                     {
-                        "eeg_data": eeg_features.tolist(),
+                        # "eeg_data": eeg_features.tolist(),
                         "emotion": detected_emotion['emotion'],
                         "valence": detected_emotion['valence'],
+                        "song": songs[0],
                         "timestamp": asyncio.get_event_loop().time(),
                     }
                 )
-                await asyncio.sleep(1)  # Adjust rate as needed
-            # await websocket.send_json(
-            #     {
-            #         "emotion": {"type": "happy", "confidence": 0.85},
-            #         "song": {"name": "Test Song", "artist": "Test Artist"},
-            #     }
-            # )
+                # await asyncio.sleep(1)  
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         print("Client disconnected")

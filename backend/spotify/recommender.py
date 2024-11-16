@@ -10,23 +10,47 @@ class MusicRecommender:
         self.sp = get_spotify_client()
         self.genius = lyricsgenius.Genius(settings.GENIUS_ACCESS_TOKEN)
         self.emotion_seeds = {
+            "sad": {
+                "max_valence": 0.3,
+                "max_energy": 0.4,
+                "target_tempo": 60,
+                "genres": ["sad", "acoustic", "piano"],
+            },
+            "angry": {
+                "min_valence": 0.3,
+                "min_energy": 0.7,
+                "target_tempo": 140,
+                "genres": ["metal", "punk", "rock"],
+            },
+            "stressed": {
+                "max_valence": 0.4,
+                "max_energy": 0.6,
+                "target_tempo": 80,
+                "genres": ["ambient", "chill", "sleep"],
+            },
+            "neutral": {
+                "target_valence": 0.5,
+                "target_energy": 0.5,
+                "target_tempo": 100,
+                "genres": ["pop", "indie", "acoustic"],
+            },
+            "relaxed": {
+                "max_valence": 0.5,
+                "max_energy": 0.4,
+                "target_tempo": 60,
+                "genres": ["ambient", "chill", "sleep"],
+            },
             "happy": {
                 "min_valence": 0.7,
                 "min_energy": 0.7,
                 "target_tempo": 120,
                 "genres": ["pop", "dance", "happy"],
             },
-            "calm": {
-                "max_valence": 0.5,
-                "max_energy": 0.4,
-                "target_tempo": 80,
-                "genres": ["ambient", "chill", "sleep"],
-            },
-            "focused": {
-                "target_valence": 0.5,
-                "target_energy": 0.6,
-                "target_tempo": 100,
-                "genres": ["classical", "study", "focus"],
+            "joyful": {
+                "min_valence": 0.8,
+                "min_energy": 0.6,
+                "target_tempo": 120,
+                "genres": ["pop", "dance", "happy"],    
             },
             "excited": {
                 "min_valence": 0.8,
