@@ -30,27 +30,17 @@ def test_endpoint():
     return {"data": "Connection successful!"}
 
 
-# @app.websocket("/ws")
-# async def websocket_endpoint(websocket: WebSocket):
-#     await websocket.accept()
-#     try:
-#         while True:
-#             # Get EEG features
-#             eeg_features = await muse_processor.get_eeg_features()
+@app.get("/auth/login")
+async def login():
+    auth_url = get_spotify_client().get_authorize_url()
+    return {"url": auth_url}
 
-#             if eeg_features is not None:
-#                 # For now, let's send the raw features
-#                 await websocket.send_json(
-#                     {
-#                         "eeg_data": eeg_features.tolist(),
-#                         "timestamp": asyncio.get_event_loop().time(),
-#                     }
-#                 )
 
-#             await asyncio.sleep(0.1)  # Adjust rate as needed
+@app.get("/auth/callback")
+async def callback(code: str):
+    token_info = get_spotify_client().get_access_token(code)
+    return {"access_token": token_info["access_token"]}
 
-#     except WebSocketDisconnect:
-#         print("Client disconnected")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
