@@ -43,8 +43,8 @@ pexpect==4.9.0
 pillow==11.0.0
 protobuf==5.28.3
 ptyprocess==0.7.0
-pydantic==2.4.0
-pydantic_core==2.10.0
+pydantic==2.7.0
+pydantic_core==2.18.1
 pygatt==5.0.0
 Pygments==2.18.0
 pylsl==1.16.1
