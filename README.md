@@ -1,4 +1,4 @@
-# Emotion-Based Music Recommender
+# Dr. DrEEG: Realtime Emotion-Based Music Recommendation Karaoke System
 
 Real-time EEG-based emotion detection and music recommendation system using Muse S headband.
 
@@ -16,10 +16,20 @@ Real-time EEG-based emotion detection and music recommendation system using Muse
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
-cp .env.template .env  # Fill in your Spotify credentials
+cp .env.template .env  # Fill in your credentials
+```
+
+Terminal 1 (connect to Muse S headband):
+
+```bash
+python3 muse/stream.py
+```
+
+Terminal 2 (run backend server):
+
+```bash
+python3 app.py
 ```
 
 ### Frontend
