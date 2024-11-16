@@ -105,8 +105,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         "timestamp": asyncio.get_event_loop().time(),
                     }
                 )
-                # await asyncio.sleep(1)  
-            await asyncio.sleep(1)
+            await asyncio.sleep(songs[0]['duration']/1000)
     except WebSocketDisconnect:
         print("Client disconnected")
 
