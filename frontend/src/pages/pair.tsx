@@ -47,13 +47,7 @@ const PairingPage = () => {
             guide the song selection, ensuring you get the perfect song for your mood.
           </p>
         </div>
-
         <div>
-          <h1>WebSocket Messages</h1>
-          <p>Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-          <ul>
-            <li>{JSON.stringify(data)}</li>
-          </ul>
           <button className="mt-6 px-6 py-2 bg-blue-500 text-white text-xl rounded hover:bg-blue-600" onClick={() => router.push('/karaoke')}>
             Start Karaoke
           </button>
