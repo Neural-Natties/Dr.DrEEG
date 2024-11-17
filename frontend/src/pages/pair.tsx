@@ -1,78 +1,89 @@
 import { useRouter } from 'next/router';
 
+const PairingStep = ({
+  number,
+  title,
+  description,
+}: {
+  number: number;
+  title: string;
+  description: string;
+}) => (
+  <div className='mb-8'>
+    <h2 className='text-2xl font-semibold text-blue-600 mb-4 flex items-center gap-3'>
+      <span className='bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center'>
+        {number}
+      </span>
+      {title}
+    </h2>
+    <p className='text-lg text-gray-700'>{description}</p>
+  </div>
+);
+
 const PairingPage = () => {
   const router = useRouter();
 
+  const steps = [
+    {
+      title: 'Turn On Your Muse-S',
+      description:
+        'Press and hold the power button on your Muse-S device until the LED light starts flashing blue. This means the device is ready to pair.',
+    },
+    {
+      title: 'Enable Bluetooth',
+      description:
+        'Make sure Bluetooth is enabled on your device. Open the Bluetooth settings and look for your Muse-S device in the available devices list.',
+    },
+    {
+      title: 'Pair the Device',
+      description:
+        'Select your Muse-S device from the list of available Bluetooth devices. If prompted, confirm the pairing by pressing the pairing button on your Muse-S.',
+    },
+    {
+      title: 'Confirm Connection',
+      description:
+        'Once paired, you should see a solid blue LED light on your Muse-S. This means your device is now connected to Dr. DrEEG and ready to start reading your brain waves.',
+    },
+    {
+      title: 'Start Singing!',
+      description:
+        'With your Muse-S connected, click Start Karaoke to begin your personalized karaoke experience. Your brain waves will guide the song selection for your perfect mood.',
+    },
+  ];
+
   return (
-    <div className='flex flex-col justify-center z-[1] items-center h-screen !overflow-y-scroll'>
-      <div className='flex flex-col justify-center text-center items-center pt-4'>
-        <h1 className='text-4xl font-bold text-black mb-6 w-full'>
-          Set Up Your Muse-S Device
-        </h1>
-        <p className='text-xl text-gray-700 mb-4 text-center max-w-2xl justify-center'>
-          Follow these simple steps to connect your Muse-S device to Dr. DrEEG
-          and start enjoying personalized karaoke!
-        </p>
-      </div>
-      <div className='relative flex flex-row z-[1]'>
-        <div className='flex flex-col items-center p-6'>
-          <div className='bg-white rounded-lg shadow-lg p-6 w-full max-w-xl'>
-            <h2 className='text-2xl font-semibold text-blue-600 mb-4'>
-              Step 1: Turn On Your Muse-S
-            </h2>
-            <p className='text-lg text-gray-700 mb-6'>
-              Press and hold the power button on your Muse-S device until the
-              LED light starts flashing blue. This means the device is ready to
-              pair.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-blue-600 mb-4'>
-              Step 2: Enable Bluetooth
-            </h2>
-            <p className='text-lg text-gray-700 mb-6'>
-              Make sure Bluetooth is enabled on your device (phone or computer).
-              Open the Bluetooth settings and look for your Muse-S device in the
-              available devices list.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-blue-600 mb-4'>
-              Step 3: Pair the Device
-            </h2>
-            <p className='text-lg text-gray-700 mb-6'>
-              Select your Muse-S device from the list of available Bluetooth
-              devices. If prompted, confirm the pairing by pressing the pairing
-              button on your Muse-S.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-blue-600 mb-4'>
-              Step 4: Confirm Connection
-            </h2>
-            <p className='text-lg text-gray-700 mb-6'>
-              Once paired, you should see a solid blue LED light on your Muse-S.
-              This means your device is now connected to Dr. DrEEG and ready to
-              start reading your brain waves.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-blue-600 mb-4'>
-              Step 5: Start Singing!
-            </h2>
-            <p className='text-lg text-gray-700 mb-6'>
-              With your Muse-S connected, return to Dr. DrEEG and click{' '}
-              <span className='text-blue-600 font-semibold'>Start Karaoke</span>{' '}
-              to begin your karaoke experience. Your brain waves will guide the
-              song selection, ensuring you get the perfect song for your mood.
-            </p>
-          </div>
+    <div className='min-h-screen bg-gradient-to-b from-white to-blue-50 py-12 px-4'>
+      <div className='max-w-4xl mx-auto'>
+        <div className='text-center mb-12'>
+          <h1 className='text-4xl font-bold text-gray-900 mb-4'>
+            Set Up Your Muse-S Device
+          </h1>
+          <p className='text-xl text-gray-600'>
+            Follow these simple steps to connect your Muse-S device and start
+            enjoying personalized karaoke!
+          </p>
         </div>
-        <div className='flex flex-col items-center p-6'>
-          <div className='bg-white rounded-lg shadow-lg p-6 w-full max-w-xl'>
-            <button
-              className='mt-6 px-6 py-2 bg-blue-500 text-white text-xl rounded hover:bg-blue-600 disabled:bg-neutral-300'
-              onClick={() => router.push('/karaoke')}
-            >
-              Start Karaoke
-            </button>
-          </div>
+
+        <div className='bg-white rounded-2xl shadow-xl p-6 mb-8'>
+          {steps.map((step, index) => (
+            <PairingStep
+              key={index}
+              number={index + 1}
+              title={step.title}
+              description={step.description}
+            />
+          ))}
+        </div>
+
+        <div className='text-center'>
+          <button
+            className='px-8 py-2 bg-blue-600 text-white text-xl rounded-lg
+                       hover:bg-blue-700 transform hover:scale-105 transition-all
+                       shadow-lg hover:shadow-xl disabled:bg-neutral-300'
+            onClick={() => router.push('/karaoke')}
+          >
+            Start Karaoke
+          </button>
         </div>
       </div>
     </div>
