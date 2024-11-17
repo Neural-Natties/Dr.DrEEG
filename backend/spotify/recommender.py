@@ -107,15 +107,3 @@ class MusicRecommender:
                 }
             )
         return tracks
-
-    def get_opposite_emotion_song(self, current_emotion: str) -> Dict:
-        opposite_emotions = {
-            "happy": "calm",
-            "calm": "excited",
-            "excited": "focused",
-            "focused": "happy",
-        }
-
-        target_emotion = opposite_emotions.get(current_emotion, "calm")
-        recommendations = self.get_recommendations(target_emotion, limit=1)
-        return recommendations[0] if recommendations else None
