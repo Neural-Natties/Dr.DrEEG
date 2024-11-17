@@ -19,7 +19,7 @@ from ml.EEG_feature_extraction import (
     feature_mean,
 )
 
-debug = True
+debug = False
 
 app = FastAPI()
 if not debug:

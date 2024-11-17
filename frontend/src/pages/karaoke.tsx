@@ -8,6 +8,16 @@ import { WebSocketMessage } from '@/types';
 import { Canvas } from '@react-three/fiber';
 import React, { use, useEffect, useState } from 'react';
 
+const Emotions = {
+  'angry': 'red-900',
+  'sad': 'blue-600',
+  'happy': 'yellow-600',
+  'neutral': 'slate-500',
+  'stressed': 'purple-600',
+  'relaxed': 'green-600',
+  'excited': 'orange-600',
+};
+
 const KaraokePage: React.FC = () => {
   // const ws = useWebSocket('ws://localhost:8000/ws');
   const token = useSpotifyAuth().token;
@@ -57,6 +67,8 @@ const KaraokePage: React.FC = () => {
     });
 
   };
+  useEffect(() => {
+  }, [data]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -128,7 +140,7 @@ const KaraokePage: React.FC = () => {
 
   return (
     <div className='relative w-screen h-screen'>
-      <Canvas className='absolute inset-0 bg-black'>
+      <Canvas className={`absolute inset-0 bg-black`}>
         {isLoading ? (
           <SpotlightLoader />
         ) : (

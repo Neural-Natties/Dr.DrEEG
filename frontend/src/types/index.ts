@@ -1,5 +1,5 @@
 export interface WebSocketMessage {
-  emotion?: string;
+  emotion: string;
   song: Song;
   timestamp: number;
 }
