@@ -1,11 +1,11 @@
-# Dr. DrEEG: Realtime Emotion-Based Music Recommendation Karaoke System
+# Dr. DrEEG: Realtime Emotion-Powered Karaoke
 
 Real-time EEG-based emotion detection and music recommendation system using Muse S headband.
 
 ## Features
 
 - Real-time EEG processing
-- Emotion classification
+- Advanced Emotion classification
 - Spotify integration
 - 3D visualization
 - WebSocket communication

@@ -139,17 +139,8 @@ const KaraokePage: React.FC = () => {
       <div className='absolute inset-0 flex flex-col items-center justify-center'>
         {!isLoading && (
           <>
-            <h2 className='text-3xl font-bold mb-2 z-10 text-white'>
-              {data.song.name}
-            </h2>
-            <p className='text-xl mb-12 text-gray-300 z-10'>
-              {data.song.artist}
-            </p>
-            <div className='z-10 w-full max-w-4xl'>
-              <Lyrics
-                lyrics={data.song.lyrics}
-                isPlaying={isPlaying && !isLoading}
-              />
+            <div className='z-10 w-full max-w-4xl mt-48'>
+              <Lyrics lyrics={data.song.lyrics} isPlaying={isPlaying && !isLoading} />
             </div>
           </>
         )}

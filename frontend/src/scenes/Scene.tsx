@@ -10,21 +10,14 @@ function AlbumArtVisualizer({ albumArt }: { albumArt: string }) {
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.005;
-      meshRef.current.position.y =
-        1.3 + Math.sin(state.clock.elapsedTime) * 0.2;
+      meshRef.current.position.y = 2 + Math.sin(state.clock.elapsedTime) * 0.2;
     }
   });
 
   return (
     <mesh ref={meshRef}>
       <boxGeometry args={[2, 2, 0.1]} />
-      <meshStandardMaterial
-        map={texture}
-        emissive='#ffffff'
-        emissiveIntensity={0.1}
-        metalness={0.8}
-        roughness={0.2}
-      />
+      <meshBasicMaterial map={texture} />
     </mesh>
   );
 }
