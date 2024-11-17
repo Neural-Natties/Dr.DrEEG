@@ -1,7 +1,9 @@
 export interface WebSocketMessage {
-  type: string;
-  payload: any;
+  eeg_data?: number[];
+  emotion?: string;
+  valence?: string;
   song: Song;
+  timestamp: number;
 }
 
 export interface Song {
@@ -13,5 +15,5 @@ export interface Song {
   album: string;
   duration: number;
   emotion: string;
-  lyrics: string[];
+  lyrics?: string[];
 }
