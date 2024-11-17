@@ -1,128 +1,170 @@
-import React, { useState, useEffect } from 'react';
-
-const defaultTrack = {
-    name: "No track playing",
-    album: {
-        images: [
-            { url: "https://via.placeholder.com/150" } // Placeholder image URL
-        ]
-    },
-    artists: [
-        { name: "Unknown artist" }
-    ]
-};
-
-const track = {
-    name: "",
-    album: {
-        images: [
-            { url: "" }
-        ]
-    },
-    artists: [
-        { name: "" }
-    ]
-}
+import React, { useEffect, useState } from 'react';
 
 interface WebPlaybackProps {
-    token: string;
-    onPlayerReady: (deviceId: string) => void;
+  token: string;
+  onPlayerReady: (deviceId: string) => void;
+  onPlaybackChange?: (isPlaying: boolean) => void;
 }
 
-const WebPlayback: React.FC<WebPlaybackProps> = ({ token, onPlayerReady }) => {
-    const [is_paused, setPaused] = useState(false);
-    const [is_active, setActive] = useState(false);
-    const [player, setPlayer] = useState<Spotify.Player | undefined>(undefined);
-    const [current_track, setTrack] = useState(track);
+const WebPlayback: React.FC<WebPlaybackProps> = ({
+  token,
+  onPlayerReady,
+  onPlaybackChange,
+}) => {
+  const [is_paused, setPaused] = useState(false);
+  const [is_active, setActive] = useState(false);
+  const [player, setPlayer] = useState<Spotify.Player | undefined>(undefined);
+  const [current_track, setTrack] = useState({
+    name: '',
+    album: { images: [{ url: '' }] },
+    artists: [{ name: '' }],
+    duration_ms: 0,
+  });
+  const [volume, setVolume] = useState(50);
+  const [position, setPosition] = useState(0);
 
-    useEffect(() => {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    script.async = true;
+    document.body.appendChild(script);
 
-        const script = document.createElement("script");
-        script.src = "https://sdk.scdn.co/spotify-player.js";
-        script.async = true;
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+        name: 'HugAI Karaoke',
+        getOAuthToken: (cb) => {
+          cb(token);
+        },
+        volume: volume / 100,
+      });
 
-        document.body.appendChild(script);
+      setPlayer(player);
 
-        window.onSpotifyWebPlaybackSDKReady = () => {
-            const player = new window.Spotify.Player({
-                name: 'Web Playback SDK 2',
-                getOAuthToken: cb => { cb(token); },
-                volume: 0.5
-            });
+      player.addListener('ready', ({ device_id }) => {
+        fetch('https://api.spotify.com/v1/me/player', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            device_ids: [device_id],
+            play: true,
+          }),
+        }).then(() => onPlayerReady(device_id));
+      });
 
-            setPlayer(player);
+      player.addListener('player_state_changed', (state) => {
+        if (!state) return;
+        setTrack(state.track_window.current_track);
+        setPaused(state.paused);
+        setPosition(state.position);
+        onPlaybackChange?.(!state.paused);
+        player.getCurrentState().then((state) => {
+          !state ? setActive(false) : setActive(true);
+        });
+      });
 
-            player.addListener('ready', ({ device_id }) => {
-                fetch('https://api.spotify.com/v1/me/player', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        device_ids: [device_id],
-                        play: true
-                    })    
-                })
-                .then(() => onPlayerReady(device_id))
-            });
+      player.connect();
+    };
+  }, [token]);
 
-            player.addListener('not_ready', ({ device_id }) => {
-                console.log('Device ID has gone offline', device_id);
-                setActive(false);
-            });
+  useEffect(() => {
+    if (!player || !is_active) return;
 
-            player.addListener('player_state_changed', ( state => {
-                if (!state) {
-                    return;
-                }
-
-                setTrack(state.track_window.current_track);
-                setPaused(state.paused);
-
-                player.getCurrentState().then( state => { 
-                    (!state)? setActive(false) : setActive(true) 
-                });
-
-            }));
-
-            player.connect();
-
-        };
-    }, []);
-
-        if (!is_active || !player || !current_track) { 
-            return (
-                <>
-                    <div>
-                        <div>
-                            <b> Loading </b>
-                        </div>
-                    </div>
-                </>)
-        } else {
-            return (
-                <>
-                    <div>
-                        <div>
-                            <div className="text-white">
-                                <button className="btn-spotify" onClick={() => { player.previousTrack() }} >
-                                    &lt;&lt;
-                                </button>
-
-                                <button className="btn-spotify" onClick={() => { player.togglePlay() }} >
-                                    { is_paused ? "PLAY" : "PAUSE" }
-                                </button>
-
-                                <button className="btn-spotify" onClick={() => { player.nextTrack() }} >
-                                    &gt;&gt;
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            );
+    const interval = setInterval(() => {
+      player.getCurrentState().then((state) => {
+        if (state) {
+          setPosition(state.position);
         }
-    }
+      });
+    }, 1000);
 
-export default WebPlayback
+    return () => clearInterval(interval);
+  }, [player, is_active]);
+
+  useEffect(() => {
+    if (player) {
+      player.setVolume(volume / 100);
+    }
+  }, [volume, player]);
+
+  const handleSeek = (value: number) => {
+    player?.seek(value).then(() => {
+      setPosition(value);
+    });
+  };
+
+  const formatTime = (ms: number) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className='fixed bottom-0 left-0 right-0 p-4 bg-black/50 backdrop-blur-lg z-50'>
+      <div className='flex flex-col max-w-4xl mx-auto gap-2'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-4'>
+            <div className='text-white'>
+              <div className='font-bold'>{current_track.name}</div>
+              <div className='text-sm text-gray-300'>
+                {current_track.artists[0].name}
+              </div>
+            </div>
+          </div>
+
+          <div className='flex items-center gap-6'>
+            <button
+              className='text-white hover:text-green-400 transition-colors text-2xl'
+              onClick={() => player?.previousTrack()}
+            >
+              ⏮
+            </button>
+            <button
+              className='text-white hover:text-green-400 transition-colors text-3xl'
+              onClick={() => player?.togglePlay()}
+            >
+              {is_paused ? '▶' : '⏸'}
+            </button>
+            <button
+              className='text-white hover:text-green-400 transition-colors text-2xl'
+              onClick={() => player?.nextTrack()}
+            >
+              ⏭
+            </button>
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <span className='text-white'>🔈</span>
+            <input
+              type='range'
+              min='0'
+              max='100'
+              value={volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+              className='w-24'
+            />
+          </div>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          <span className='text-white text-sm'>{formatTime(position)}</span>
+          <input
+            type='range'
+            min='0'
+            max={current_track.duration_ms}
+            value={position}
+            onChange={(e) => handleSeek(Number(e.target.value))}
+            className='flex-grow'
+          />
+          <span className='text-white text-sm'>
+            {formatTime(current_track.duration_ms)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WebPlayback;

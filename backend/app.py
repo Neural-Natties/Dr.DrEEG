@@ -21,23 +21,7 @@ from ml.EEG_feature_extraction import (
 
 app = FastAPI()
 muse_processor = MuseProcessor()
-connected = False
 recommender = MusicRecommender()
-# while not connected:
-#     muses = list_muses()
-#     muses = [m for m in muses if m["name"] == "MuseS-79AA"]
-#     # Found device MuseS-79AA, MAC Address 25770FE7-C2E5-8082-FCD6-22319FD37812
-
-#     if not muses:
-#         print("No Muses found")
-#     else:
-#         connected = True
-#         stream(
-#             muses[0]["address"], ppg_enabled=True, acc_enabled=True, gyro_enabled=True
-#         )
-
-#         # Note: Streaming is synchronous, so code here will not execute until the stream has been closed
-#         print("Stream has ended")
 
 app.add_middleware(
     CORSMiddleware,
@@ -85,42 +69,35 @@ async def websocket_endpoint(websocket: WebSocket):
     model = load_model()
     try:
         model = load_model()
-        # print("Model loaded")
-        # with open("muse_readings.csv", "w") as f:
-        #     pass
+        print("Model loaded")
+        with open("muse_readings.csv", "w") as f:
+            pass
+        stream_name = "muse_readings.csv"
+        # os.remove(stream_name)
         while True:
-            stream_name = 'muse_readings.csv'
             cwd = os.getcwd()
             print(cwd)
-            record(8, filename= cwd + '/' + stream_name)
-            
-            with open(stream_name, 'r') as f, open(stream_name.replace('.csv', 'out.csv'), 'w') as out:
+            record(8, filename=cwd + "/" + stream_name)
+
+            with open(stream_name, "r") as f, open(
+                stream_name.replace(".csv", "out.csv"), "w"
+            ) as out:
                 lines = f.readlines()
                 out.writelines(lines[:602])
-            os.remove(stream_name)
-            
 
-
-
-            eeg_features = []
-        
-
-            detected_emotion = classify_emotion(model, stream_name.replace('.csv', 'out.csv'))
+            detected_emotion = classify_emotion(
+                model, stream_name.replace(".csv", "out.csv")
+            )
             if detected_emotion:
                 print(detected_emotion)
             songs = recommender.get_recommendations(detected_emotion, limit=1)
-            # songs = ["hello"]
             shuffle(songs)
 
-           
             if detected_emotion is not None:
-                # For now, let's send the raw features
                 await websocket.send_json(
                     {
-                        # "eeg_data": eeg_features.tolist(),
-                        "emotion": detected_emotion["emotion"],
-                        # "valence": detected_emotion["valence"],                        export DYLD_LIBRARY_PATH=/opt/homebrew/lib
-                        "song": songs[0],
+                        "emotion": detected_emotion,
+                        "song": songs,
                         "timestamp": asyncio.get_event_loop().time(),
                     }
                 )

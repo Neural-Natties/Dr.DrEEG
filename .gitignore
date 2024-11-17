@@ -181,3 +181,5 @@ next-env.d.ts
 # OS specific
 .DS_Store
 Thumbs.db
+
+*muse_readings*

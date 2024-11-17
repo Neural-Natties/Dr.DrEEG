@@ -3,12 +3,19 @@ import { useEffect, useState } from 'react';
 interface LyricsProps {
   lyrics?: string[];
   interval?: number;
+  isPlaying?: boolean;
 }
 
-export const Lyrics: React.FC<LyricsProps> = ({ lyrics, interval = 3000 }) => {
+export const Lyrics: React.FC<LyricsProps> = ({
+  lyrics,
+  interval = 3000,
+  isPlaying = false,
+}) => {
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
 
   useEffect(() => {
+    if (!isPlaying) return;
+
     const timer = setInterval(() => {
       if (lyrics?.length) {
         setCurrentLyricIndex((prev) =>
@@ -18,7 +25,7 @@ export const Lyrics: React.FC<LyricsProps> = ({ lyrics, interval = 3000 }) => {
     }, interval);
 
     return () => clearInterval(timer);
-  }, [lyrics, interval]);
+  }, [lyrics, interval, isPlaying]);
 
   return (
     <div className='h-64 flex flex-col items-center justify-center'>

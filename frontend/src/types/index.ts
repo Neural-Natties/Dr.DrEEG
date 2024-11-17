@@ -1,7 +1,5 @@
 export interface WebSocketMessage {
-  eeg_data?: number[];
   emotion?: string;
-  valence?: string;
   song: Song;
   timestamp: number;
 }
