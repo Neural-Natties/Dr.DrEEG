@@ -66,7 +66,6 @@ async def get_token():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    model = load_model()
     try:
         model = load_model()
         print("Model loaded")
@@ -91,13 +90,12 @@ async def websocket_endpoint(websocket: WebSocket):
             if detected_emotion:
                 print(detected_emotion)
             songs = recommender.get_recommendations(detected_emotion, limit=1)
-            shuffle(songs)
 
             if detected_emotion is not None:
                 await websocket.send_json(
                     {
                         "emotion": detected_emotion,
-                        "song": songs,
+                        "song": songs[0],
                         "timestamp": asyncio.get_event_loop().time(),
                     }
                 )
