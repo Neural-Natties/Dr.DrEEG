@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 interface LyricsProps {
-  lyrics: string[];
+  lyrics?: string[];
   interval?: number;
 }
 
