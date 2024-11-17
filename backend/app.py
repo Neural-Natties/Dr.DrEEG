@@ -1,8 +1,10 @@
 import asyncio
 import uvicorn
+import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from muse.processor import MuseProcessor
+from muselsl import record, stream, list_muses
 from spotify.auth import get_spotify_client
 from spotify.recommender import MusicRecommender
 import numpy as np
@@ -14,14 +16,28 @@ from ml.EEG_feature_extraction import (
     matrix_from_csv_file,
     calc_feature_vector,
     get_time_slice,
-    generate_features_for_timeslice,
     feature_mean,
 )
 
 app = FastAPI()
 muse_processor = MuseProcessor()
+connected = False
 recommender = MusicRecommender()
+# while not connected:
+#     muses = list_muses()
+#     muses = [m for m in muses if m["name"] == "MuseS-79AA"]
+#     # Found device MuseS-79AA, MAC Address 25770FE7-C2E5-8082-FCD6-22319FD37812
 
+#     if not muses:
+#         print("No Muses found")
+#     else:
+#         connected = True
+#         stream(
+#             muses[0]["address"], ppg_enabled=True, acc_enabled=True, gyro_enabled=True
+#         )
+
+#         # Note: Streaming is synchronous, so code here will not execute until the stream has been closed
+#         print("Stream has ended")
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,43 +86,40 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         model = load_model()
         # print("Model loaded")
+        # with open("muse_readings.csv", "w") as f:
+        #     pass
         while True:
-            # eeg_features = await muse_processor.get_eeg_features()
-            eeg_features = []
-            # eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
+            stream_name = 'muse_readings.csv'
+            cwd = os.getcwd()
+            print(cwd)
+            record(8, filename= cwd + '/' + stream_name)
+            
+            with open(stream_name, 'r') as f, open(stream_name.replace('.csv', 'out.csv'), 'w') as out:
+                lines = f.readlines()
+                out.writelines(lines[:602])
+            os.remove(stream_name)
+            
 
-            detected_emotion = classify_emotion(model, eeg_features, 0)
-            emotion = detected_emotion["emotion"]
-            songs = recommender.get_recommendations(emotion, limit=1)
+
+
+            eeg_features = []
+        
+
+            detected_emotion = classify_emotion(model, stream_name.replace('.csv', 'out.csv'))
+            if detected_emotion:
+                print(detected_emotion)
+            songs = recommender.get_recommendations(detected_emotion, limit=1)
+            # songs = ["hello"]
             shuffle(songs)
 
-            # time = eeg_features[-1][0]
-            # print("Time", time)
-            # # break
-            # for i in range( int(time-eeg_features[0][0])):
-            #     # eeg_features[i] = extract_eeg_features(eeg_features[i])
-            #     print(f"Getting time slice {i}")
-
-            #     time_slice, _ = get_time_slice(eeg_features, i)
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
-            #     if 0 in time_slice.shape:
-            #         continue
-            #     features, _ = generate_features_for_timeslice(time_slice)
-
-            #     time_slice = features
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
-            #     time_slice, _ = feature_mean(time_slice)
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
-            #     classifications.append(classify_emotion(model, time_slice, i))
-
-            # for i, classification in enumerate(classifications):
+           
             if detected_emotion is not None:
                 # For now, let's send the raw features
                 await websocket.send_json(
                     {
                         # "eeg_data": eeg_features.tolist(),
                         "emotion": detected_emotion["emotion"],
-                        "valence": detected_emotion["valence"],
+                        # "valence": detected_emotion["valence"],                        export DYLD_LIBRARY_PATH=/opt/homebrew/lib
                         "song": songs[0],
                         "timestamp": asyncio.get_event_loop().time(),
                     }
@@ -120,8 +133,6 @@ async def websocket_endpoint(websocket: WebSocket):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
-        model = load_model()
-        # print("Model loaded")
         while True:
             await websocket.send_json(
                 {

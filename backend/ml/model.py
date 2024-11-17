@@ -1,9 +1,12 @@
 import random
 import numpy as np
 import tensorflow as tf
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.layers import Dense, Flatten, LSTM, Input, Dropout, BatchNormalization, GRU
 from ml.EEG_feature_extraction import matrix_from_csv_file, generate_feature_vectors_from_samples
 # from ml.EEG_generate_training_matrix import gen_training_matrix
 
+already_saved = False
 Emotions = {
     0: "sad",
     1: "angry",
@@ -11,8 +14,7 @@ Emotions = {
     3: "neutral",
     4: "relaxed",
     5: "happy",
-    6: "joyful",
-    7: "excited"
+    6: "excited"
 }
 
 
@@ -33,7 +35,7 @@ def load_model(path='ml/best_lstm_model.keras'):
     """
     return tf.keras.models.load_model(path)
 
-def classify_emotion(model, input_data, state):
+def classify_emotion(model, input_data = 'ml/data/test-data.csv'):
     """
     Classify the emotion based on the input data.
 
@@ -45,67 +47,54 @@ def classify_emotion(model, input_data, state):
     Returns:
     numpy array: The predicted emotion probabilities.
     """
-    global emotion
-    # Ensure the input data is in the correct shape for the model
-    # input_data = input_data[:, :-1]
-    multiplier = random.randint(0, 2)
-    multiplier /= 10
-    multiplier -= 0.1
-    multiplier += 1
-    emotion *= multiplier
-    if emotion < 0:
-        emotion = 0
-    elif emotion > 7:
-        emotion = 7
-    return {'emotion': Emotions[round(emotion)], 'valence': emotion / 7}
-    # input_data = tf.expand_dims(input_data, axis=0)
-    
-    # Convert input_data to a numpy array if it is not already
-    # if not isinstance(input_data, np.ndarray):
-    #     # input_data = np.array(input_data, dtype=np.float32)
-    # input_data = np.array(input_data, dtype=np.float32)
+    global already_saved
+    # Generate feature vectors from the input data
+    feature_vectors, headers = generate_feature_vectors_from_samples(
+        file_path=input_data, 
+        nsamples=150, 
+        period=1.0, 
+        state=1, 
+        remove_redundant=False
+    )
 
-    # input_data = input_data.reshape(2541, -1)
-    # Add 7 columns of random floats between -0.0002 and 0.00002
-    # random_columns = np.random.uniform(-0.0002, 0.00002, (7, input_data.shape[1]))
-    # input_data = np.concatenate((input_data, random_columns))
-    # input_data = np.hstack((input_data, input_data))
-    # input_data = np.hstack((input_data, input_data))
+    # Reshape the feature vectors to match the input shape expected by the model
+    feature_vectors = feature_vectors.reshape(-1, 1)
+    # print(feature_vectors.shape,"\n\n\n\n\n")
 
-    #
+    sequence_length = feature_vectors.shape[0]
 
-    vectors, header = generate_feature_vectors_from_samples(file_path = input_data, 
-														        nsamples = 150, 
-																period = 1.,
-																state = 1,
-														        remove_redundant = True,
-																cols_to_ignore = -1)
-    
-    print(input_data.shape)
-    # exit()
+    feature_vectors = feature_vectors[: sequence_length // 2548 * 2548]
+    # Replace NaNs with 0 in feature_vectors
+    feature_vectors = np.nan_to_num(feature_vectors, nan=0.0)
+    feature_vectors = feature_vectors.reshape((-1, 2548, 1))
+    # if not already_saved:
+    #     already_saved = True
+    #     np.savetxt('feature_vectors.txt', feature_vectors.flatten(), delimiter=',')
+
     # Run the classification model on the input data
-    predictions = model.predict(input_data)
+    predictions = model.predict(feature_vectors)
+    emotion = convert_to_emotion(predictions)
+    return emotion
 
-    
-    return predictions
-
-
-def feature_mean(matrix):
+def convert_to_emotion(predictions):
     """
-    Calculate the mean of the features in the matrix.
+    Convert the predicted emotion probabilities to an emotion label.
 
     Args:
-    matrix (numpy array): The matrix of features.
+    predictions (numpy array): The predicted emotion probabilities.
 
     Returns:
-    numpy array: The mean of the features.
+    str: The predicted emotion label.
     """
-    # Ensure matrix is a numpy array of float type
-    if not isinstance(matrix, np.ndarray):
-        matrix = np.array(matrix, dtype=np.float32)
-    else:
-        matrix = matrix.astype(np.float32)
-    
-    ret = np.mean(matrix, axis=0).flatten()
-    
-    return ret
+    # Combine the negative, neutral and positive emotion probabilities to guess which Emotion is being felt
+    x, y, z = predictions[0]
+    output = -3*x + 3*z
+    output += 3
+    output = round(output)
+    output = int(output)
+    if output < 0:
+        output = 0
+    elif output > 6:
+        output = 6
+
+    return Emotions[output]

@@ -836,7 +836,8 @@ def generate_feature_vectors_from_samples(file_path, nsamples, period,
 	
 	# Initialise empty return object
 	ret = None
-	
+	headers = []
+	ry = None
 	# Until an exception is raised or a stop condition is met
 	while True:
 		# Get the next slice from the file (starting at time 't', with a 
@@ -893,112 +894,18 @@ def generate_feature_vectors_from_samples(file_path, nsamples, period,
 				 "lag1_min_q3_", "lag1_min_q4_", "lag1_min_d_q3q4_"]
 		
 		# Remove redundancies
+
 		for i in range(len(to_rm)):
-			for j in range(ry.shape[1]):
-				rm_str = to_rm[i] + str(j)
-				idx = feat_names.index(rm_str)
-				feat_names.pop(idx)
-				ret = np.delete(ret, idx, axis = 1)
+			if ry:
+				for j in range(ry.shape[1]):
+					rm_str = to_rm[i] + str(j)
+					idx = feat_names.index(rm_str)
+					feat_names.pop(idx)
+					ret = np.delete(ret, idx, axis = 1)
 
 	# Return
 	return ret, feat_names
 
-def generate_features_for_timeslice(matrix, state=None):
-	"""
-	Generates features for a single time slice given an input matrix.
-	
-	Parameters:
-		matrix (numpy.ndarray): 2D [nsamples x nsignals] matrix containing the 
-		values of nsignals for a time window of length nsamples
-		state (str): label associated with the time window represented in the 
-		matrix.
-		
-	Returns:
-		numpy.ndarray: 1D array containing all features
-		list: list containing feature names for the features
-
-	Author:
-		GitHub Copilot
-	"""
-	
-	# Extract the half- and quarter-windows
-	h1, h2 = np.split(matrix, [ int(matrix.shape[0] / 2) ])
-	q1, q2, q3, q4 = np.split(matrix, 
-								[int(0.25 * matrix.shape[0]), 
-								int(0.50 * matrix.shape[0]), 
-								int(0.75 * matrix.shape[0])])
-
-	var_names = []    
-	
-	x, v = feature_mean(matrix)
-	var_names += v
-	var_values = x
-	
-	x, v = feature_mean_d(h1, h2)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-
-	x, v = feature_mean_q(q1, q2, q3, q4)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_stddev(matrix)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_stddev_d(h1, h2)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_moments(matrix)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_max(matrix)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_max_d(h1, h2)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-
-	x, v = feature_max_q(q1, q2, q3, q4)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_min(matrix)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_min_d(h1, h2)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-
-	x, v = feature_min_q(q1, q2, q3, q4)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v, covM = feature_covariance_matrix(matrix)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_eigenvalues(covM)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v, log_cov = feature_logcov(covM)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	x, v = feature_fft(matrix)
-	var_names += v
-	var_values = np.hstack([var_values, x])
-	
-	if state is not None:
-		var_values = np.hstack([var_values, np.array([state])])
-		var_names += ['Label']
-
-	return var_values, var_names
 
 
 # ========================================================================
