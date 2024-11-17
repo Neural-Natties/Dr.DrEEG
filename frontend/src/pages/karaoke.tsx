@@ -32,6 +32,12 @@ const KaraokePage: React.FC = () => {
         {data?.song?.albumArt && <Scene albumArt={data.song.albumArt} />}
       </Canvas>
 
+      {!token ? (
+        <p className='text-white'>Loading...</p>
+      ) : (
+        <WebPlayback token={token} onPlayerReady={setDeviceId} />
+      )}
+
       <div className='absolute inset-0 flex flex-col items-center justify-center translate-y-20'>
         {data?.song && (
           <>
@@ -45,11 +51,6 @@ const KaraokePage: React.FC = () => {
               <Lyrics lyrics={data.song.lyrics} />
             </div>
           </>
-        )}
-        {!token ? (
-          <p className='text-white'>Loading...</p>
-        ) : (
-          <WebPlayback token={token} onPlayerReady={setDeviceId} />
         )}
       </div>
     </div>
