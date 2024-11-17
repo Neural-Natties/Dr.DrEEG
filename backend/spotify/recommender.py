@@ -1,5 +1,5 @@
 from typing import Dict, List
-import spotipy
+import random
 import lyricsgenius
 from spotify.auth import get_spotify_client
 from config.settings import settings
@@ -9,68 +9,50 @@ class MusicRecommender:
     def __init__(self):
         self.sp = get_spotify_client()
         self.genius = lyricsgenius.Genius(settings.GENIUS_ACCESS_TOKEN)
-        self.emotion_seeds = {
+    
+    def generate_emotion_seeds(self, emotion: str) -> Dict:
+        seeds = {
             "sad": {
-                "max_valence": 0.3,
-                "max_energy": 0.4,
-                "target_tempo": 60,
-                "min_popularity": 80,
+                "target_valence": random.uniform(0.2, 0.4),
+                "target_energy": random.uniform(0.3, 0.5),
+                "target_tempo": random.randint(40, 80),
+                "target_popularity": random.randint(80, 100),
                 "genres": ["sad", "acoustic", "piano"],
             },
             "angry": {
-                "min_valence": 0.3,
-                "min_energy": 0.7,
-                "target_tempo": 140,
-                "min_popularity": 80,
+                "target_valence": random.uniform(0.2, 0.4),
+                "target_energy": random.uniform(0.6, 0.8),
+                "target_tempo": random.randint(120, 160),
+                "target_popularity": random.randint(80, 100),
                 "genres": ["metal", "punk", "rock"],
             },
             "stressed": {
-                "max_valence": 0.4,
-                "max_energy": 0.6,
-                "target_tempo": 80,
-                "min_popularity": 80,
-                "genres": ["ambient", "chill", "sleep"],
-            },
-            "neutral": {
-                "target_valence": 0.5,
-                "target_energy": 0.5,
-                "target_tempo": 100,
-                "min_popularity": 80,
-                "genres": ["pop", "indie", "acoustic"],
-            },
-            "relaxed": {
-                "max_valence": 0.5,
-                "max_energy": 0.4,
-                "target_tempo": 60,
-                "min_popularity": 80,
-                "genres": ["ambient", "chill", "sleep"],
+                "target_valence": random.uniform(0.4, 0.5),
+                "target_energy": random.uniform(0.4, 0.6),
+                "target_tempo": random.randint(60, 100),
+                "target_popularity": random.randint(80, 100),
+                "genres": ["ambient", "chill", "classical"],
             },
             "happy": {
-                "min_valence": 0.7,
-                "min_energy": 0.7,
-                "target_tempo": 120,
-                "min_popularity": 80,
-                "genres": ["pop", "dance", "happy"],
-            },
-            "joyful": {
-                "min_valence": 0.8,
-                "min_energy": 0.6,
-                "target_tempo": 120,
-                "min_popularity": 80,
+                "target_valence": random.uniform(0.7, 0.9),
+                "target_energy": random.uniform(0.6, 0.8),
+                "target_tempo": random.randint(100, 140),
+                "target_popularity": random.randint(80, 100),
                 "genres": ["pop", "dance", "happy"],
             },
             "excited": {
-                "min_valence": 0.8,
-                "min_energy": 0.8,
-                "target_tempo": 140,
-                "min_popularity": 80,
+                "target_valence": random.uniform(0.7, 0.9),
+                "target_energy": random.uniform(0.7, 0.9),
+                "target_tempo": random.randint(120, 160),
+                "target_popularity": random.randint(80, 100),
                 "genres": ["edm", "party", "rock"],
             },
         }
+        return seeds.get(emotion, seeds["happy"])
 
     def get_recommendations(self, emotion: str, limit: int = 5) -> List[Dict]:
-        params = self.emotion_seeds.get(emotion, self.emotion_seeds["relaxed"])
-
+        params = self.generate_emotion_seeds(emotion)
+        print(params)
         recommendations = self.sp.recommendations(
             seed_genres=params["genres"][:2],
             limit=limit,
