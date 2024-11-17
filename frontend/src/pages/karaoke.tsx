@@ -3,14 +3,63 @@ import WebPlayback from '@/components/WebPlayback';
 import { useSpotifyAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Scene } from '@/scenes/Scene';
+import { WebSocketMessage } from '@/types';
 import { Canvas } from '@react-three/fiber';
 import React, { useEffect, useState } from 'react';
 
 const KaraokePage: React.FC = () => {
-  const { data } = useWebSocket('ws://localhost:8000/ws');
+  // const ws = useWebSocket('ws://localhost:8000/ws');
   const token = useSpotifyAuth().token;
+  const [isConnected, setIsConnected] = useState(false);
+  const [data, setData] = useState<WebSocketMessage | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+
+  // useEffect(() => {
+  //   ws.onopen = () => {
+  //     console.log('WebSocket connection opened');
+  //     setIsConnected(true);
+  //   };
+
+  //   ws.onclose = (event) => {
+  //     console.log('WebSocket connection closed', event);
+  //     setIsConnected(false);
+  //   };
+
+  //   ws.onerror = (error) => {
+  //     console.error('WebSocket error', error);
+  //   };
+
+  //   ws.onmessage = (event) => {
+  //     const message: WebSocketMessage = JSON.parse(event.data);
+  //     setData(message);
+  //   };
+
+  //   return () => {
+  //     ws.close();
+  //   };
+  // }, []);
+
+  const requestUpdate = () => {
+    fetch('http://localhost:8000/ws').then((data) => data.json()).then((data) =>
+      setData(data)
+    );
+  };
+
+  useEffect(() => {
+    if (!isConnected) {
+      setIsConnected(true);
+      requestUpdate();
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
+    if (isFinished) {
+      setIsFinished(false);
+      requestUpdate();
+    }
+  }, [isFinished]);
 
   useEffect(() => {
     if (!data || !token || !deviceId) return;
@@ -61,6 +110,8 @@ const KaraokePage: React.FC = () => {
           token={token}
           onPlayerReady={setDeviceId}
           onPlaybackChange={setIsPlaying}
+          sendMessage={requestUpdate}
+          onFinished={() => setIsFinished(true)}
         />
       )}
     </div>

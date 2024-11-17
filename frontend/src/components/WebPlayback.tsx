@@ -4,12 +4,16 @@ interface WebPlaybackProps {
   token: string;
   onPlayerReady: (deviceId: string) => void;
   onPlaybackChange?: (isPlaying: boolean) => void;
+  sendMessage: (message: string) => void;
+  onFinished: () => void;
 }
 
 const WebPlayback: React.FC<WebPlaybackProps> = ({
   token,
   onPlayerReady,
   onPlaybackChange,
+  sendMessage,
+  onFinished,
 }) => {
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
@@ -59,6 +63,9 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
         setTrack(state.track_window.current_track);
         setPaused(state.paused);
         setPosition(state.position);
+        if (state.paused && state.position === 0) {
+          // onFinished();
+        }
         onPlaybackChange?.(!state.paused);
         player.getCurrentState().then((state) => {
           !state ? setActive(false) : setActive(true);
@@ -129,7 +136,7 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
             </button>
             <button
               className='text-white hover:text-green-400 transition-colors text-2xl'
-              onClick={() => player?.nextTrack()}
+              onClick={() => sendMessage('skip')}
             >
               ⏭
             </button>
