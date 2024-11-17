@@ -2,28 +2,39 @@ import { Lyrics } from '@/components/Lyrics';
 import WebPlayback from '@/components/WebPlayback';
 import { useSpotifyAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { Scene } from '@/scenes/Scene';
+import { Canvas } from '@react-three/fiber';
 
 const KaraokePage: React.FC = () => {
   const { data } = useWebSocket('ws://localhost:8000/ws');
-  const token = useSpotifyAuth().token!;
+  const { token } = useSpotifyAuth();
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 relative'>
-      {data?.song && (
-        <>
-          <img
-            src={data.song.albumArt || undefined}
-            alt='Album Art'
-            className='w-[24rem] h-[24rem] rounded-2xl shadow-2xl mb-5 z-10'
-          />
-          <h2 className='text-2xl font-bold mb-2 z-10'>{data.song.name}</h2>
-          <p className='text-xl mb-12 text-gray-300 z-10'>{data.song.artist}</p>
-          <div className='z-10 w-full max-w-4xl'>
-            <Lyrics lyrics={data.song.lyrics} />
-          </div>
-        </>
-      )}
-      {!token ? <p>loading</p> : <WebPlayback token={token} />}
+    <div className='relative w-screen h-screen'>
+      <Canvas className='absolute inset-0 bg-black'>
+        {data?.song?.albumArt && <Scene albumArt={data.song.albumArt} />}
+      </Canvas>
+
+      <div className='absolute inset-0 flex flex-col items-center justify-center translate-y-20'>
+        {data?.song && (
+          <>
+            <h2 className='text-2xl font-bold mb-2 z-10 text-white'>
+              {data.song.name}
+            </h2>
+            <p className='text-xl mb-12 text-gray-300 z-10'>
+              {data.song.artist}
+            </p>
+            <div className='z-10 w-full max-w-4xl'>
+              <Lyrics lyrics={data.song.lyrics} />
+            </div>
+          </>
+        )}
+        {!token ? (
+          <p className='text-white'>Loading...</p>
+        ) : (
+          <WebPlayback token={token} />
+        )}
+      </div>
     </div>
   );
 };
