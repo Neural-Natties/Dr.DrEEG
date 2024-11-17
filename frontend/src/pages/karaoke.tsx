@@ -1,3 +1,4 @@
+import { LoadingTransition, SpotlightLoader } from '@/components/loading';
 import { Lyrics } from '@/components/Lyrics';
 import WebPlayback from '@/components/WebPlayback';
 import { useSpotifyAuth } from '@/hooks/useAuth';
@@ -5,7 +6,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { Scene } from '@/scenes/Scene';
 import { WebSocketMessage } from '@/types';
 import { Canvas } from '@react-three/fiber';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 
 const KaraokePage: React.FC = () => {
   // const ws = useWebSocket('ws://localhost:8000/ws');
@@ -14,6 +15,8 @@ const KaraokePage: React.FC = () => {
   const [data, setData] = useState<WebSocketMessage | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [isFinished, setIsFinished] = useState(false);
 
   // useEffect(() => {
@@ -42,9 +45,17 @@ const KaraokePage: React.FC = () => {
   // }, []);
 
   const requestUpdate = () => {
-    fetch('http://localhost:8000/ws').then((data) => data.json()).then((data) =>
+    fetch('http://localhost:8000/ws').then((data) => data.json()).then((data) =>{
+
       setData(data)
-    );
+      setIsLoading(false);
+    }
+    ).catch((error) => {
+      console.error(error);
+      setIsFinished(false);
+      setIsLoading(false);
+    });
+
   };
 
   useEffect(() => {
@@ -54,15 +65,26 @@ const KaraokePage: React.FC = () => {
     }
   }, [isConnected]);
 
+ 
+
   useEffect(() => {
     if (isFinished) {
-      setIsFinished(false);
       requestUpdate();
+      // setIsFinished(false);
     }
   }, [isFinished]);
 
   useEffect(() => {
-    if (!data || !token || !deviceId) return;
+    if (
+      !data?.song?.id ||
+      !token ||
+      !deviceId ||
+      data.song.id === currentTrackId
+    )
+      return;
+
+    setIsLoading(true);
+    setCurrentTrackId(data.song.id);
 
     fetch('https://api.spotify.com/v1/me/player/play?device_id=' + deviceId, {
       method: 'PUT',
@@ -75,18 +97,47 @@ const KaraokePage: React.FC = () => {
         position_ms: 0,
       }),
     })
-      .then(() => setIsPlaying(true))
-      .catch(console.error);
-  }, [data, token, deviceId]);
+      .then(() => {
+        setIsPlaying(true);
+        setTimeout(() => setIsLoading(false), 1000);
+      })
+      .catch((error) => {
+        console.error(error);
+        setIsLoading(false);
+      });
+  }, [data?.song?.id, token, deviceId, currentTrackId]);
+
+  const handleTrackChange = () => {
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 1000);
+  };
+
+  const handlePlaybackChange = (isPlaying: boolean) => {
+    setIsPlaying(isPlaying);
+  };
+
+  if (!data?.song) {
+    return (
+      <div className='relative w-screen h-screen'>
+        <Canvas className='absolute inset-0 bg-black'>
+          <SpotlightLoader />
+        </Canvas>
+      </div>
+    );
+  }
 
   return (
     <div className='relative w-screen h-screen'>
       <Canvas className='absolute inset-0 bg-black'>
-        {data?.song?.albumArt && <Scene albumArt={data.song.albumArt} />}
+        {isLoading ? (
+          <SpotlightLoader />
+        ) : (
+          <Scene albumArt={data.song.albumArt || ''} />
+        )}
       </Canvas>
 
       <div className='absolute inset-0 flex flex-col items-center justify-center'>
-        {data?.song && (
+        {!isLoading && (
           <>
             <h2 className='text-3xl font-bold mb-2 z-10 text-white'>
               {data.song.name}
@@ -95,23 +146,23 @@ const KaraokePage: React.FC = () => {
               {data.song.artist}
             </p>
             <div className='z-10 w-full max-w-4xl'>
-              <Lyrics lyrics={data.song.lyrics} isPlaying={isPlaying} />
+              <Lyrics
+                lyrics={data.song.lyrics}
+                isPlaying={isPlaying && !isLoading}
+              />
             </div>
           </>
         )}
       </div>
 
-      {!token ? (
-        <div className='absolute bottom-0 w-full text-center p-4 text-white'>
-          Loading...
-        </div>
-      ) : (
+      {token && (
         <WebPlayback
           token={token}
           onPlayerReady={setDeviceId}
-          onPlaybackChange={setIsPlaying}
+          onFinished={handleTrackChange}
           sendMessage={requestUpdate}
-          onFinished={() => setIsFinished(true)}
+          onPlaybackChange={setIsPlaying}
+          setLoading={setIsLoading}
         />
       )}
     </div>

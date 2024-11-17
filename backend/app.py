@@ -119,12 +119,10 @@ async def websocket_endpoint():
             # except:
             # # print(f"Received response from client: {response}")
             # # await asyncio.sleep(1)
-            #     await asyncio.sleep(songs[0]["duration"] / 1000)
-    except WebSocketDisconnect:
-        print("Client disconnected")
+            #     await asyncio.sleep(songs[0]["duration"] / 1000
     except Exception as e:
         print(f"Error: {e}")
-        await websocket.close()
+
 
 
 if __name__ == "__main__":
