@@ -1,9 +1,7 @@
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { useRouter } from 'next/router';
 
 const PairingPage = () => {
   const router = useRouter();
-  const { isConnected } = useWebSocket('ws://localhost:8000/ws');
 
   return (
     <div className='flex flex-col justify-center z-[1] items-center h-screen !overflow-y-scroll'>
@@ -68,10 +66,8 @@ const PairingPage = () => {
         </div>
         <div className='flex flex-col items-center p-6'>
           <div className='bg-white rounded-lg shadow-lg p-6 w-full max-w-xl'>
-            <p>Status: {isConnected ? 'Connected' : 'Not Connected'}</p>
             <button
               className='mt-6 px-6 py-2 bg-blue-500 text-white text-xl rounded hover:bg-blue-600 disabled:bg-neutral-300'
-              disabled={isConnected ? false : true}
               onClick={() => router.push('/karaoke')}
             >
               Start Karaoke

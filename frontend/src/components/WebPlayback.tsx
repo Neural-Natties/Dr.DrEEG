@@ -26,9 +26,10 @@ const track = {
 
 interface WebPlaybackProps {
     token: string;
+    onPlayerReady: (deviceId: string) => void;
 }
 
-const WebPlayback: React.FC<WebPlaybackProps> = ({ token }) => {
+const WebPlayback: React.FC<WebPlaybackProps> = ({ token, onPlayerReady }) => {
     const [is_paused, setPaused] = useState(false);
     const [is_active, setActive] = useState(false);
     const [player, setPlayer] = useState<Spotify.Player | undefined>(undefined);
@@ -43,7 +44,6 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({ token }) => {
         document.body.appendChild(script);
 
         window.onSpotifyWebPlaybackSDKReady = () => {
-
             const player = new window.Spotify.Player({
                 name: 'Web Playback SDK 2',
                 getOAuthToken: cb => { cb(token); },
@@ -64,8 +64,8 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({ token }) => {
                         device_ids: [device_id],
                         play: true
                     })    
-                });
-
+                })
+                .then(() => onPlayerReady(device_id))
             });
 
             player.addListener('not_ready', ({ device_id }) => {
@@ -74,7 +74,6 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({ token }) => {
             });
 
             player.addListener('player_state_changed', ( state => {
-                console.log(state);
                 if (!state) {
                     return;
                 }
