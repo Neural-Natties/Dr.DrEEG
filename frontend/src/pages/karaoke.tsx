@@ -1,8 +1,10 @@
-import { useWebSocket } from '@/hooks/useWebSocket';
-import React, { use, useEffect, useState } from 'react';
-import { useSpotifyAuth } from '@/hooks/useAuth';
+import { Lyrics } from '@/components/Lyrics';
 import WebPlayback from '@/components/WebPlayback';
-
+import { useSpotifyAuth } from '@/hooks/useAuth';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { Scene } from '@/scenes/Scene';
+import { Canvas } from '@react-three/fiber';
+import React, { useEffect, useState } from 'react';
 
 const KaraokePage: React.FC = () => {
   const { data, isConnected } = useWebSocket('ws://localhost:8000/ws');
@@ -25,10 +27,31 @@ const KaraokePage: React.FC = () => {
   }, [data, token, deviceId]);
 
   return (
-    <div className='p-6 text-2xl w-screen h-screen'>
-      <h1>WebSocket Messages</h1>
-      <p>Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-      {!token ? <p>loading</p> : <WebPlayback token={token} onPlayerReady={setDeviceId} />}
+    <div className='relative w-screen h-screen'>
+      <Canvas className='absolute inset-0 bg-black'>
+        {data?.song?.albumArt && <Scene albumArt={data.song.albumArt} />}
+      </Canvas>
+
+      <div className='absolute inset-0 flex flex-col items-center justify-center translate-y-20'>
+        {data?.song && (
+          <>
+            <h2 className='text-2xl font-bold mb-2 z-10 text-white'>
+              {data.song.name}
+            </h2>
+            <p className='text-xl mb-12 text-gray-300 z-10'>
+              {data.song.artist}
+            </p>
+            <div className='z-10 w-full max-w-4xl'>
+              <Lyrics lyrics={data.song.lyrics} />
+            </div>
+          </>
+        )}
+        {!token ? (
+          <p className='text-white'>Loading...</p>
+        ) : (
+          <WebPlayback token={token} onPlayerReady={setDeviceId} />
+        )}
+      </div>
     </div>
   );
 };
