@@ -1,20 +1,30 @@
+import { send } from 'process';
 import React, { useEffect, useState } from 'react';
 
 interface WebPlaybackProps {
   token: string;
   onPlayerReady: (deviceId: string) => void;
   onPlaybackChange?: (isPlaying: boolean) => void;
+  onTrackChange?: () => void;
+  sendMessage: (message: string) => void;
+  onFinished: () => void;
+  setLoading: (loading: boolean) => void;
 }
 
 const WebPlayback: React.FC<WebPlaybackProps> = ({
   token,
   onPlayerReady,
   onPlaybackChange,
+  onTrackChange,
+  sendMessage,
+  onFinished,
+  setLoading
 }) => {
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
   const [player, setPlayer] = useState<Spotify.Player | undefined>(undefined);
   const [current_track, setTrack] = useState({
+    id: '',
     name: '',
     album: { images: [{ url: '' }] },
     artists: [{ name: '' }],
@@ -22,6 +32,7 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
   });
   const [volume, setVolume] = useState(50);
   const [position, setPosition] = useState(0);
+  const [previousPosition, setPreviousPosition] = useState(0);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -55,10 +66,35 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
 
       player.addListener('player_state_changed', (state) => {
         if (!state) return;
-        setTrack(state.track_window.current_track);
+
+        // Track change detection
+        const isNewTrack =
+          state.track_window.current_track.id !== current_track.id;
+        // Track end detection (position resets to 0 and was previously playing)
+        const isTrackEnd = state.position === 0 && previousPosition > 0;
+
+        if (isNewTrack || isTrackEnd) {
+          // sendMessage('track_change');
+          setTrack({
+            id: state.track_window.current_track.id || '',
+            name: state.track_window.current_track.name,
+            album: {
+              images: state.track_window.current_track.album.images,
+            },
+            artists: state.track_window.current_track.artists,
+            duration_ms: state.track_window.current_track.duration_ms,
+          });
+          onTrackChange?.();
+        }
+
+        setPreviousPosition(state.position);
         setPaused(state.paused);
         setPosition(state.position);
+        // if (current_track.duration_ms == state.position) {
+        //   onFinished();
+        // }
         onPlaybackChange?.(!state.paused);
+
         player.getCurrentState().then((state) => {
           !state ? setActive(false) : setActive(true);
         });
@@ -116,7 +152,10 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
           <div className='flex items-center gap-6'>
             <button
               className='text-white hover:text-green-400 transition-colors text-2xl'
-              onClick={() => player?.previousTrack()}
+              onClick={() => {
+                onTrackChange?.();
+                player?.previousTrack();
+              }}
             >
               ⏮
             </button>
@@ -128,7 +167,10 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
             </button>
             <button
               className='text-white hover:text-green-400 transition-colors text-2xl'
-              onClick={() => player?.nextTrack()}
+              onClick={() => {
+                setLoading(true);
+                sendMessage('skip');
+              }}
             >
               ⏭
             </button>

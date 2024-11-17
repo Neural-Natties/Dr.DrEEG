@@ -19,9 +19,13 @@ from ml.EEG_feature_extraction import (
     feature_mean,
 )
 
+debug = False
+
 app = FastAPI()
-muse_processor = MuseProcessor()
+if not debug:
+    muse_processor = MuseProcessor()
 recommender = MusicRecommender()
+model = load_model()
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,20 +67,22 @@ async def get_token():
         return {"error": "Token not found"}
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
+@app.get("/ws")
+async def websocket_endpoint():
+    # await websocket.accept()
+    global model
     try:
-        model = load_model()
         print("Model loaded")
         with open("muse_readings.csv", "w") as f:
             pass
-        stream_name = "muse_readings.csv"
+
+        stream_name = "muse_readings.csv" if not debug else 'ml/data/test-data.csv'
         # os.remove(stream_name)
         while True:
             cwd = os.getcwd()
             print(cwd)
-            record(8, filename=cwd + "/" + stream_name)
+            if not debug:
+                record(8, filename=cwd + "/" + stream_name)
 
             with open(stream_name, "r") as f, open(
                 stream_name.replace(".csv", "out.csv"), "w"
@@ -92,35 +98,32 @@ async def websocket_endpoint(websocket: WebSocket):
             songs = recommender.get_recommendations(detected_emotion, limit=1)
 
             if detected_emotion is not None:
-                await websocket.send_json(
-                    {
-                        "emotion": detected_emotion,
-                        "song": songs[0],
-                        "timestamp": asyncio.get_event_loop().time(),
-                    }
-                )
-            await asyncio.sleep(songs[0]["duration"] / 1000)
-    except WebSocketDisconnect:
-        print("Client disconnected")
-
-
-@app.websocket("/wstest")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            await websocket.send_json(
-                {
-                    "emotion": {"type": "happy", "confidence": 0.85},
-                    "valence": "0.33",
-                    "song": {"name": "Test Song", "artist": "Test Artist"},
-                    "timestamp": "124345.345678",
+                return {
+                    "emotion": detected_emotion,
+                    "song": songs[0],
+                    "timestamp": asyncio.get_event_loop().time(),
                 }
-            )
-            await asyncio.sleep(1)
-    except WebSocketDisconnect:
-        print("Client disconnected")
+            # waiting = True
+            # try:
+            #     while waiting:
+            #         print("Waiting for response from client")
+            #         response = await websocket.receive()
+            #         if response:
+            #             # response = response
+            #             if "type" in response:
+            #                 if response["type"] == 'websocket.receive':
+            #                     if response["text"]["type"] == "REFRESH":
+                                
+            #                         print("Received response from client", response)
+            #                         waiting = False
+            # except:
+            # # print(f"Received response from client: {response}")
+            # # await asyncio.sleep(1)
+            #     await asyncio.sleep(songs[0]["duration"] / 1000
+    except Exception as e:
+        print(f"Error: {e}")
+
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, log_level="debug", reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")

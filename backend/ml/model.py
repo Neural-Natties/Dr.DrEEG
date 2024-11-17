@@ -88,7 +88,8 @@ def convert_to_emotion(predictions):
     """
     # Combine the negative, neutral and positive emotion probabilities to guess which Emotion is being felt
     x, y, z = predictions[0]
-    output = -3*x + 3*z
+    print("probabilities", x, y, z)
+    output = -1.5*x +1.5 * y+ 3*z
     output += 3
     output = round(output)
     output = int(output)
