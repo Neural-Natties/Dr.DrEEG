@@ -1,6 +1,5 @@
 import { useWebSocket } from '@/hooks/useWebSocket';
 import React, { useEffect, useState } from 'react';
-import { useSpotifyAuth } from '@/hooks/useAuth'
 import WebPlayback from '@/components/WebPlayback';
 
 

@@ -9,7 +9,14 @@ import numpy as np
 from scipy.signal import welch
 from ml.model import load_model, classify_emotion
 from random import shuffle
-from ml.EEG_feature_extraction import generate_feature_vectors_from_samples, matrix_from_csv_file, calc_feature_vector,  get_time_slice, generate_features_for_timeslice, feature_mean
+from ml.EEG_feature_extraction import (
+    generate_feature_vectors_from_samples,
+    matrix_from_csv_file,
+    calc_feature_vector,
+    get_time_slice,
+    generate_features_for_timeslice,
+    feature_mean,
+)
 
 app = FastAPI()
 muse_processor = MuseProcessor()
@@ -46,14 +53,15 @@ async def callback(code: str):
     token_info = get_spotify_client().get_access_token(code)
     return {"access_token": token_info["access_token"]}
 
+
 @app.get("/auth/token")
 async def get_token():
     token = get_spotify_client().auth_manager.get_access_token()
     if token:
-       return {"access_token": token["access_token"]}
+        return {"access_token": token["access_token"]}
     else:
         return {"error": "Token not found"}
-  
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -67,12 +75,10 @@ async def websocket_endpoint(websocket: WebSocket):
             eeg_features = []
             # eeg_feature_vectors, _ = generate_feature_vectors_from_samples("../test-muse/recordings/test-data.csv", 400, 1, '0', False)
 
-            detected_emotion = classify_emotion(model,eeg_features, 0)
-            emotion = detected_emotion['emotion']
-            songs = recommender.get_recommendations(emotion, limit=2)
+            detected_emotion = classify_emotion(model, eeg_features, 0)
+            emotion = detected_emotion["emotion"]
+            songs = recommender.get_recommendations(emotion, limit=1)
             shuffle(songs)
-                
-
 
             # time = eeg_features[-1][0]
             # print("Time", time)
@@ -80,10 +86,10 @@ async def websocket_endpoint(websocket: WebSocket):
             # for i in range( int(time-eeg_features[0][0])):
             #     # eeg_features[i] = extract_eeg_features(eeg_features[i])
             #     print(f"Getting time slice {i}")
-                
+
             #     time_slice, _ = get_time_slice(eeg_features, i)
-            #     print("Time slice shape", time_slice.shape, "\n",time_slice)  
-            #     if 0 in time_slice.shape: 
+            #     print("Time slice shape", time_slice.shape, "\n",time_slice)
+            #     if 0 in time_slice.shape:
             #         continue
             #     features, _ = generate_features_for_timeslice(time_slice)
 
@@ -92,20 +98,20 @@ async def websocket_endpoint(websocket: WebSocket):
             #     time_slice, _ = feature_mean(time_slice)
             #     print("Time slice shape", time_slice.shape, "\n",time_slice)
             #     classifications.append(classify_emotion(model, time_slice, i))
-            
+
             # for i, classification in enumerate(classifications):
             if detected_emotion is not None:
                 # For now, let's send the raw features
                 await websocket.send_json(
                     {
                         # "eeg_data": eeg_features.tolist(),
-                        "emotion": detected_emotion['emotion'],
-                        "valence": detected_emotion['valence'],
+                        "emotion": detected_emotion["emotion"],
+                        "valence": detected_emotion["valence"],
                         "song": songs[0],
                         "timestamp": asyncio.get_event_loop().time(),
                     }
                 )
-            await asyncio.sleep(songs[0]['duration']/1000)
+            await asyncio.sleep(songs[0]["duration"] / 1000)
     except WebSocketDisconnect:
         print("Client disconnected")
 

@@ -14,48 +14,56 @@ class MusicRecommender:
                 "max_valence": 0.3,
                 "max_energy": 0.4,
                 "target_tempo": 60,
+                "target_popularity": 100,
                 "genres": ["sad", "acoustic", "piano"],
             },
             "angry": {
                 "min_valence": 0.3,
                 "min_energy": 0.7,
                 "target_tempo": 140,
+                "target_popularity": 100,
                 "genres": ["metal", "punk", "rock"],
             },
             "stressed": {
                 "max_valence": 0.4,
                 "max_energy": 0.6,
                 "target_tempo": 80,
+                "target_popularity": 100,
                 "genres": ["ambient", "chill", "sleep"],
             },
             "neutral": {
                 "target_valence": 0.5,
                 "target_energy": 0.5,
                 "target_tempo": 100,
+                "target_popularity": 100,
                 "genres": ["pop", "indie", "acoustic"],
             },
             "relaxed": {
                 "max_valence": 0.5,
                 "max_energy": 0.4,
                 "target_tempo": 60,
+                "target_popularity": 100,
                 "genres": ["ambient", "chill", "sleep"],
             },
             "happy": {
                 "min_valence": 0.7,
                 "min_energy": 0.7,
                 "target_tempo": 120,
+                "target_popularity": 100,
                 "genres": ["pop", "dance", "happy"],
             },
             "joyful": {
                 "min_valence": 0.8,
                 "min_energy": 0.6,
                 "target_tempo": 120,
-                "genres": ["pop", "dance", "happy"],    
+                "target_popularity": 100,
+                "genres": ["pop", "dance", "happy"],
             },
             "excited": {
                 "min_valence": 0.8,
                 "min_energy": 0.8,
                 "target_tempo": 140,
+                "target_popularity": 100,
                 "genres": ["edm", "party", "rock"],
             },
         }
@@ -99,15 +107,3 @@ class MusicRecommender:
                 }
             )
         return tracks
-
-    def get_opposite_emotion_song(self, current_emotion: str) -> Dict:
-        opposite_emotions = {
-            "happy": "calm",
-            "calm": "excited",
-            "excited": "focused",
-            "focused": "happy",
-        }
-
-        target_emotion = opposite_emotions.get(current_emotion, "calm")
-        recommendations = self.get_recommendations(target_emotion, limit=1)
-        return recommendations[0] if recommendations else None
