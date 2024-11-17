@@ -49,7 +49,6 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
           },
           body: JSON.stringify({
             device_ids: [device_id],
-            play: true,
           }),
         }).then(() => onPlayerReady(device_id));
       });
