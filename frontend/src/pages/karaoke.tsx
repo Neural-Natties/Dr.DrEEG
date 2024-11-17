@@ -15,8 +15,6 @@ const KaraokePage: React.FC = () => {
     if (!data || !token || !deviceId) {
       return;
     }
-    console.log(data.song.id)
-    console.log(token)
     fetch('https://api.spotify.com/v1/me/player/play?device_id=' + deviceId, {
       method: 'PUT',
       headers: {

@@ -53,7 +53,6 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({ token, onPlayerReady }) => {
             setPlayer(player);
 
             player.addListener('ready', ({ device_id }) => {
-                console.log('Ready with Device ID', device_id);
                 fetch('https://api.spotify.com/v1/me/player', {
                     method: 'PUT',
                     headers: {
