@@ -1,25 +1,13 @@
-import { LoadingTransition, SpotlightLoader } from '@/components/loading';
+import { SpotlightLoader } from '@/components/Loading';
 import { Lyrics } from '@/components/Lyrics';
 import WebPlayback from '@/components/WebPlayback';
 import { useSpotifyAuth } from '@/hooks/useAuth';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { Scene } from '@/scenes/Scene';
 import { WebSocketMessage } from '@/types';
 import { Canvas } from '@react-three/fiber';
-import React, { use, useEffect, useState } from 'react';
-
-const Emotions = {
-  'angry': 'red-900',
-  'sad': 'blue-600',
-  'happy': 'yellow-600',
-  'neutral': 'slate-500',
-  'stressed': 'purple-600',
-  'relaxed': 'green-600',
-  'excited': 'orange-600',
-};
+import React, { useEffect, useState } from 'react';
 
 const KaraokePage: React.FC = () => {
-  // const ws = useWebSocket('ws://localhost:8000/ws');
   const token = useSpotifyAuth().token;
   const [isConnected, setIsConnected] = useState(false);
   const [data, setData] = useState<WebSocketMessage | null>(null);
@@ -29,46 +17,20 @@ const KaraokePage: React.FC = () => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [isFinished, setIsFinished] = useState(false);
 
-  // useEffect(() => {
-  //   ws.onopen = () => {
-  //     console.log('WebSocket connection opened');
-  //     setIsConnected(true);
-  //   };
-
-  //   ws.onclose = (event) => {
-  //     console.log('WebSocket connection closed', event);
-  //     setIsConnected(false);
-  //   };
-
-  //   ws.onerror = (error) => {
-  //     console.error('WebSocket error', error);
-  //   };
-
-  //   ws.onmessage = (event) => {
-  //     const message: WebSocketMessage = JSON.parse(event.data);
-  //     setData(message);
-  //   };
-
-  //   return () => {
-  //     ws.close();
-  //   };
-  // }, []);
-
   const requestUpdate = () => {
-    fetch('http://localhost:8000/ws').then((data) => data.json()).then((data) =>{
-
-      setData(data)
-      setIsLoading(false);
-    }
-    ).catch((error) => {
-      console.error(error);
-      setIsFinished(false);
-      setIsLoading(false);
-    });
-
+    fetch('http://localhost:8000/song')
+      .then((data) => data.json())
+      .then((data) => {
+        setData(data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        setIsFinished(false);
+        setIsLoading(false);
+      });
   };
-  useEffect(() => {
-  }, [data]);
+  useEffect(() => {}, [data]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -77,12 +39,9 @@ const KaraokePage: React.FC = () => {
     }
   }, [isConnected]);
 
- 
-
   useEffect(() => {
     if (isFinished) {
       requestUpdate();
-      // setIsFinished(false);
     }
   }, [isFinished]);
 
@@ -124,10 +83,6 @@ const KaraokePage: React.FC = () => {
     setTimeout(() => setIsLoading(false), 1000);
   };
 
-  const handlePlaybackChange = (isPlaying: boolean) => {
-    setIsPlaying(isPlaying);
-  };
-
   if (!data?.song) {
     return (
       <div className='relative w-screen h-screen'>
@@ -152,7 +107,10 @@ const KaraokePage: React.FC = () => {
         {!isLoading && (
           <>
             <div className='z-10 w-full max-w-4xl mt-48'>
-              <Lyrics lyrics={data.song.lyrics} isPlaying={isPlaying && !isLoading} />
+              <Lyrics
+                lyrics={data.song.lyrics}
+                isPlaying={isPlaying && !isLoading}
+              />
             </div>
           </>
         )}

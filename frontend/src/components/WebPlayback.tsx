@@ -1,4 +1,3 @@
-import { send } from 'process';
 import React, { useEffect, useState } from 'react';
 
 interface WebPlaybackProps {
@@ -17,8 +16,7 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
   onPlaybackChange,
   onTrackChange,
   sendMessage,
-  onFinished,
-  setLoading
+  setLoading,
 }) => {
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
@@ -74,7 +72,6 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
         const isTrackEnd = state.position === 0 && previousPosition > 0;
 
         if (isNewTrack || isTrackEnd) {
-          // sendMessage('track_change');
           setTrack({
             id: state.track_window.current_track.id || '',
             name: state.track_window.current_track.name,
@@ -90,9 +87,6 @@ const WebPlayback: React.FC<WebPlaybackProps> = ({
         setPreviousPosition(state.position);
         setPaused(state.paused);
         setPosition(state.position);
-        // if (current_track.duration_ms == state.position) {
-        //   onFinished();
-        // }
         onPlaybackChange?.(!state.paused);
 
         player.getCurrentState().then((state) => {

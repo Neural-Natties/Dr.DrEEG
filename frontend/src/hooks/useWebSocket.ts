@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { WebSocketMessage } from '../types';
 
-
-
 export const useWebSocket = (url: string) => {
-  // const [data, setData] = useState<WebSocketMessage | null>(null);
+  const [data, setData] = useState<WebSocketMessage | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const ws = new WebSocket(url);
 

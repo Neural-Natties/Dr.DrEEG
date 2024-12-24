@@ -4,7 +4,7 @@
     <h1>WebSocket Test</h1>
     <div id="messages"></div>
     <script>
-      const ws = new WebSocket('ws://localhost:8000/ws');
+      const ws = new WebSocket('ws://localhost:8000/song');
       ws.onmessage = (event) => {
         const messages = document.getElementById('messages');
         const data = JSON.parse(event.data);
