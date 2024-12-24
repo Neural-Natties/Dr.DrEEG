@@ -1,31 +1,36 @@
+import argparse
 import asyncio
-import uvicorn
 import os
+import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from muse.processor import MuseProcessor
-from muselsl import record, stream, list_muses
 from spotify.auth import get_spotify_client
 from spotify.recommender import MusicRecommender
-import numpy as np
-from scipy.signal import welch
-from ml.model import load_model, classify_emotion
-from random import shuffle
-from ml.EEG_feature_extraction import (
-    generate_feature_vectors_from_samples,
-    matrix_from_csv_file,
-    calc_feature_vector,
-    get_time_slice,
-    feature_mean,
-)
 
-debug = False
+parser = argparse.ArgumentParser()
+parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+args = parser.parse_args()
+debug = args.debug
 
 app = FastAPI()
-if not debug:
-    muse_processor = MuseProcessor()
 recommender = MusicRecommender()
-model = load_model()
+
+if debug:
+    from muse.processor import MuseProcessor
+    from muselsl import record, stream, list_muses
+    import numpy as np
+    from scipy.signal import welch
+    from ml.model import load_model, classify_emotion
+    from ml.EEG_feature_extraction import (
+        generate_feature_vectors_from_samples,
+        matrix_from_csv_file,
+        calc_feature_vector,
+        get_time_slice,
+        feature_mean,
+    )
+
+    muse_processor = MuseProcessor()
+    model = load_model()
 
 app.add_middleware(
     CORSMiddleware,
@@ -69,15 +74,15 @@ async def get_token():
 
 @app.get("/ws")
 async def websocket_endpoint():
-    # await websocket.accept()
-    global model
+    if not debug:
+        return {"error": "ML features only available in debug mode"}
+
     try:
         print("Model loaded")
         with open("muse_readings.csv", "w") as f:
             pass
 
-        stream_name = "muse_readings.csv" if not debug else 'ml/data/test-data.csv'
-        # os.remove(stream_name)
+        stream_name = "muse_readings.csv" if not debug else "ml/data/test-data.csv"
         while True:
             cwd = os.getcwd()
             print(cwd)
@@ -103,26 +108,8 @@ async def websocket_endpoint():
                     "song": songs[0],
                     "timestamp": asyncio.get_event_loop().time(),
                 }
-            # waiting = True
-            # try:
-            #     while waiting:
-            #         print("Waiting for response from client")
-            #         response = await websocket.receive()
-            #         if response:
-            #             # response = response
-            #             if "type" in response:
-            #                 if response["type"] == 'websocket.receive':
-            #                     if response["text"]["type"] == "REFRESH":
-                                
-            #                         print("Received response from client", response)
-            #                         waiting = False
-            # except:
-            # # print(f"Received response from client: {response}")
-            # # await asyncio.sleep(1)
-            #     await asyncio.sleep(songs[0]["duration"] / 1000
     except Exception as e:
         print(f"Error: {e}")
-
 
 
 if __name__ == "__main__":
