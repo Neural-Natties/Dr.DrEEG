@@ -74,8 +74,7 @@ async def get_token():
 
 @app.get("/ws")
 async def websocket_endpoint():
-    if not debug:
-        return {"error": "ML features only available in debug mode"}
+    global model
 
     try:
         print("Model loaded")
