@@ -2,8 +2,20 @@ import random
 import numpy as np
 import tensorflow as tf
 from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.layers import Dense, Flatten, LSTM, Input, Dropout, BatchNormalization, GRU
-from ml.EEG_feature_extraction import matrix_from_csv_file, generate_feature_vectors_from_samples
+from tensorflow.keras.layers import (
+    Dense,
+    Flatten,
+    LSTM,
+    Input,
+    Dropout,
+    BatchNormalization,
+    GRU,
+)
+from ml.EEG_feature_extraction import (
+    matrix_from_csv_file,
+    generate_feature_vectors_from_samples,
+)
+
 # from ml.EEG_generate_training_matrix import gen_training_matrix
 
 already_saved = False
@@ -14,16 +26,15 @@ Emotions = {
     3: "neutral",
     4: "relaxed",
     5: "happy",
-    6: "excited"
+    6: "excited",
 }
-
 
 
 emotion = 3
 
 
 # Load the pre-trained LSTM model
-def load_model(path='ml/best_lstm_model.keras'):
+def load_model(path="ml/best_lstm_model.keras"):
     """
     Load the pre-trained LSTM model from the given path.
 
@@ -35,7 +46,8 @@ def load_model(path='ml/best_lstm_model.keras'):
     """
     return tf.keras.models.load_model(path)
 
-def classify_emotion(model, input_data = 'ml/data/test-data.csv'):
+
+def classify_emotion(model, input_data="ml/data/test-data.csv"):
     """
     Classify the emotion based on the input data.
 
@@ -50,11 +62,7 @@ def classify_emotion(model, input_data = 'ml/data/test-data.csv'):
     global already_saved
     # Generate feature vectors from the input data
     feature_vectors, headers = generate_feature_vectors_from_samples(
-        file_path=input_data, 
-        nsamples=150, 
-        period=1.0, 
-        state=1, 
-        remove_redundant=False
+        file_path=input_data, nsamples=150, period=1.0, state=1, remove_redundant=False
     )
 
     # Reshape the feature vectors to match the input shape expected by the model
@@ -76,6 +84,7 @@ def classify_emotion(model, input_data = 'ml/data/test-data.csv'):
     emotion = convert_to_emotion(predictions)
     return emotion
 
+
 def convert_to_emotion(predictions):
     """
     Convert the predicted emotion probabilities to an emotion label.
@@ -89,7 +98,7 @@ def convert_to_emotion(predictions):
     # Combine the negative, neutral and positive emotion probabilities to guess which Emotion is being felt
     x, y, z = predictions[0]
     print("probabilities", x, y, z)
-    output = -1.5*x +1.5 * y+ 3*z
+    output = -1.5 * x + 1.5 * y + 3 * z
     output += 3
     output = round(output)
     output = int(output)
