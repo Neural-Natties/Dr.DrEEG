@@ -1,22 +1,6 @@
-import random
 import numpy as np
 import tensorflow as tf
-from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.layers import (
-    Dense,
-    Flatten,
-    LSTM,
-    Input,
-    Dropout,
-    BatchNormalization,
-    GRU,
-)
-from ml.EEG_feature_extraction import (
-    matrix_from_csv_file,
-    generate_feature_vectors_from_samples,
-)
-
-# from ml.EEG_generate_training_matrix import gen_training_matrix
+from ml.EEG_feature_extraction import generate_feature_vectors_from_samples
 
 already_saved = False
 Emotions = {
@@ -28,7 +12,6 @@ Emotions = {
     5: "happy",
     6: "excited",
 }
-
 
 emotion = 3
 
@@ -61,23 +44,18 @@ def classify_emotion(model, input_data="ml/data/test-data.csv"):
     """
     global already_saved
     # Generate feature vectors from the input data
-    feature_vectors, headers = generate_feature_vectors_from_samples(
+    feature_vectors = generate_feature_vectors_from_samples(
         file_path=input_data, nsamples=150, period=1.0, state=1, remove_redundant=False
     )
 
     # Reshape the feature vectors to match the input shape expected by the model
     feature_vectors = feature_vectors.reshape(-1, 1)
-    # print(feature_vectors.shape,"\n\n\n\n\n")
-
     sequence_length = feature_vectors.shape[0]
-
     feature_vectors = feature_vectors[: sequence_length // 2548 * 2548]
+
     # Replace NaNs with 0 in feature_vectors
     feature_vectors = np.nan_to_num(feature_vectors, nan=0.0)
     feature_vectors = feature_vectors.reshape((-1, 2548, 1))
-    # if not already_saved:
-    #     already_saved = True
-    #     np.savetxt('feature_vectors.txt', feature_vectors.flatten(), delimiter=',')
 
     # Run the classification model on the input data
     predictions = model.predict(feature_vectors)

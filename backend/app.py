@@ -1,19 +1,13 @@
 import argparse
 import asyncio
 import os
-import uvicorn
+from config.settings import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from ml.EEG_feature_extraction import (
-    calc_feature_vector,
-    feature_mean,
-    generate_feature_vectors_from_samples,
-    get_time_slice,
-    matrix_from_csv_file,
-)
 from ml.model import load_model, classify_emotion
 from spotify.auth import get_spotify_client
 from spotify.recommender import MusicRecommender
+import uvicorn
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -21,6 +15,8 @@ args = parser.parse_args()
 debug = args.debug
 
 app = FastAPI()
+recommender = MusicRecommender()
+model = load_model()
 
 if debug:
     from muse.processor import MuseProcessor
@@ -28,9 +24,7 @@ if debug:
 
     muse_processor = MuseProcessor()
 
-recommender = MusicRecommender()
-model = load_model()
-
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,28 +34,19 @@ app.add_middleware(
 )
 
 
+# Health check
 @app.get("/")
 def read_root():
     return {"status": "online", "message": "EEG Backend is running!"}
 
 
+# Test endpoint
 @app.get("/test")
 def test_endpoint():
     return {"data": "Connection successful!"}
 
 
-@app.get("/auth/login")
-async def login():
-    auth_url = get_spotify_client().get_authorize_url()
-    return {"url": auth_url}
-
-
-@app.get("/auth/callback")
-async def callback(code: str):
-    token_info = get_spotify_client().get_access_token(code)
-    return {"access_token": token_info["access_token"]}
-
-
+# Spotify authentication
 @app.get("/auth/token")
 async def get_token():
     token = get_spotify_client().auth_manager.get_cached_token()
@@ -71,8 +56,9 @@ async def get_token():
         return {"error": "Token not found"}
 
 
-@app.get("/ws")
-async def websocket_endpoint():
+# Spotify recommendation
+@app.get("/song")
+async def get_song():
     global model
     try:
         print("Model loaded")
@@ -110,4 +96,4 @@ async def websocket_endpoint():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", log_level="debug")
+    uvicorn.run(app, host=settings.WEB_HOST, log_level="debug")

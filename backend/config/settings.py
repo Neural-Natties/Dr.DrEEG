@@ -8,14 +8,12 @@ load_dotenv()
 class Settings(BaseSettings):
     SPOTIFY_CLIENT_ID: str
     SPOTIFY_CLIENT_SECRET: str
-    SPOTIFY_REDIRECT_URI: str = "http://localhost:8000/callback"
+    SPOTIFY_REDIRECT_URI: str
     GENIUS_CLIENT_ID: str
     GENIUS_ACCESS_TOKEN: str
 
-    WEBSOCKET_HOST: str = "0.0.0.0"
-    WEBSOCKET_PORT: int = 8000
-
-    MODEL_PATH: str = "models/emotion_classifier.pkl"
+    WEB_HOST: str = "0.0.0.0"
+    WEB_PORT: int = 8000
 
     class Config:
         env_file = ".env"
