@@ -1,4 +1,4 @@
-import { SpotlightLoader } from '@/components/Loadings';
+import { SpotlightLoader } from '@/components/Loading';
 import { Lyrics } from '@/components/Lyrics';
 import WebPlayback from '@/components/WebPlayback';
 import { useSpotifyAuth } from '@/hooks/useAuth';
