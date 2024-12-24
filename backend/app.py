@@ -2,8 +2,16 @@ import argparse
 import asyncio
 import os
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from ml.EEG_feature_extraction import (
+    calc_feature_vector,
+    feature_mean,
+    generate_feature_vectors_from_samples,
+    get_time_slice,
+    matrix_from_csv_file,
+)
+from ml.model import load_model, classify_emotion
 from spotify.auth import get_spotify_client
 from spotify.recommender import MusicRecommender
 
@@ -13,24 +21,15 @@ args = parser.parse_args()
 debug = args.debug
 
 app = FastAPI()
-recommender = MusicRecommender()
 
 if debug:
     from muse.processor import MuseProcessor
-    from muselsl import record, stream, list_muses
-    import numpy as np
-    from scipy.signal import welch
-    from ml.model import load_model, classify_emotion
-    from ml.EEG_feature_extraction import (
-        generate_feature_vectors_from_samples,
-        matrix_from_csv_file,
-        calc_feature_vector,
-        get_time_slice,
-        feature_mean,
-    )
+    from muselsl import record
 
     muse_processor = MuseProcessor()
-    model = load_model()
+
+recommender = MusicRecommender()
+model = load_model()
 
 app.add_middleware(
     CORSMiddleware,
@@ -75,17 +74,16 @@ async def get_token():
 @app.get("/ws")
 async def websocket_endpoint():
     global model
-
     try:
         print("Model loaded")
         with open("muse_readings.csv", "w") as f:
             pass
 
-        stream_name = "muse_readings.csv" if not debug else "ml/data/test-data.csv"
+        stream_name = "muse_readings.csv" if debug else "ml/data/test-data.csv"
         while True:
             cwd = os.getcwd()
             print(cwd)
-            if not debug:
+            if debug:
                 record(8, filename=cwd + "/" + stream_name)
 
             with open(stream_name, "r") as f, open(
