@@ -9,7 +9,7 @@ class MusicRecommender:
     def __init__(self):
         self.sp = get_spotify_client()
         self.genius = lyricsgenius.Genius(settings.GENIUS_ACCESS_TOKEN)
-    
+
     def generate_emotion_seeds(self, emotion: str) -> Dict:
         seeds = {
             "sad": {

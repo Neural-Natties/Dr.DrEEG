@@ -64,7 +64,7 @@ async def callback(code: str):
 
 @app.get("/auth/token")
 async def get_token():
-    token = get_spotify_client().auth_manager.get_access_token()
+    token = get_spotify_client().auth_manager.get_cached_token()
     if token:
         return {"access_token": token["access_token"]}
     else:
@@ -110,4 +110,4 @@ async def websocket_endpoint():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
+    uvicorn.run(app, host="0.0.0.0", log_level="debug")
