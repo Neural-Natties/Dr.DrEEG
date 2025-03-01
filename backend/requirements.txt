@@ -4,7 +4,7 @@ lyricsgenius
 pydantic
 pydantic-settings==2.6.1
 python-dotenv==1.0.0
-spotipy==2.23.0
+spotipy==2.25.1
 uvicorn==0.23.2
 
 # ML deps
